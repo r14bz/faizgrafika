@@ -1,3 +1,4 @@
+HEAD
 # FaizGrafika - Web E-Commerce Cetak & Desain (Shopee Mobile-Friendly)
 
 Paket lengkap fullstack website percetakan dan desain grafis, siap di-deploy ke **Vercel** dan terhubung ke database **Supabase (PostgreSQL)**.
@@ -163,3 +164,6 @@ Setelah itu, login lewat `/admin-login.html` menggunakan username & password ter
 - [x] Panel admin dilindungi login (JWT) — lihat bagian "Setup v2" di atas untuk membuat kredensialnya.
 - [x] Deskripsi produk, ulasan & rating bintang, promo/diskon, banner beranda dinamis, upload file pelanggan, dan broadcast biodata Undangan sudah terintegrasi.
 - [ ] **Wajib dilakukan sebelum go-live**: ganti nomor `ADMIN_WA_NUMBER` di `public/index.html`, isi produk asli lewat Admin, jalankan `migration_v2.sql` di Supabase, dan buat kredensial admin (lihat "Setup v2").
+=======
+# faizgrafika
+ 489b7a4f9031a7421cf5632f091a9311d677e520
