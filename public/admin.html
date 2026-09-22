@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Admin - FaizGrafika</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #f3f4f6; }
+        .brand-font { font-family: 'Cinzel', serif; letter-spacing: 0.03em; }
+        .tab-btn.active { background-color: #f97316; color: white; }
+    </style>
+</head>
+<body class="text-gray-800 pb-12">
+
+    <div id="auth-checking" class="min-h-screen flex items-center justify-center text-xs text-gray-400">
+        Memeriksa sesi admin...
+    </div>
+
+    <div id="dashboard" class="hidden">
+        <header class="bg-gray-900 text-white shadow">
+            <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-gauge text-orange-400"></i>
+                    <span class="brand-font font-bold text-sm">FAIZGRAFIKA ADMIN</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a href="index.html" class="text-xs bg-gray-800 px-3 py-1.5 rounded-lg hover:bg-gray-700 transition">Lihat Toko</a>
+                    <button onclick="logout()" class="text-xs bg-red-600 px-3 py-1.5 rounded-lg hover:bg-red-700 transition"><i class="fa-solid fa-right-from-bracket"></i> Keluar</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigasi Tab -->
+        <div class="max-w-4xl mx-auto px-4 pt-4">
+            <div class="bg-white p-1.5 rounded-xl shadow-sm border flex gap-1 text-xs font-semibold overflow-x-auto">
+                <button class="tab-btn active px-3 py-2 rounded-lg whitespace-nowrap" data-tab="tab-products" onclick="showTab('tab-products')">Produk & Promo</button>
+                <button class="tab-btn px-3 py-2 rounded-lg whitespace-nowrap" data-tab="tab-orders" onclick="showTab('tab-orders')">Pesanan Masuk</button>
+                <button class="tab-btn px-3 py-2 rounded-lg whitespace-nowrap" data-tab="tab-banners" onclick="showTab('tab-banners')">Banner Promo</button>
+                <button class="tab-btn px-3 py-2 rounded-lg whitespace-nowrap" data-tab="tab-payments" onclick="showTab('tab-payments')">Metode Pembayaran</button>
+            </div>
+        </div>
+
+        <main class="max-w-4xl mx-auto p-4 space-y-6">
+
+            <!-- ================= TAB: PRODUK & PROMO ================= -->
+            <div id="tab-products" class="space-y-6">
+                <div class="bg-white p-4 rounded-xl shadow-sm border space-y-4">
+                    <h3 class="font-bold text-sm text-gray-700 border-b pb-2"><i class="fa-solid fa-plus-circle text-orange-500 mr-1"></i> Tambah Produk Cetak Baru</h3>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        <div>
+                            <label class="block font-medium text-gray-600 mb-1">Nama Produk / Layanan</label>
+                            <input type="text" id="input-name" placeholder="Contoh: Cetak Undangan Hardcover" class="w-full border rounded-lg p-2 focus:ring-1 focus:ring-orange-500">
+                        </div>
+                        <div>
+                            <label class="block font-medium text-gray-600 mb-1">Kategori</label>
+                            <select id="input-category" class="w-full border rounded-lg p-2 bg-white">
+                                <option>Undangan</option>
+                                <option>Cetak Dokumen</option>
+                                <option>Fotocopy</option>
+                                <option>Desain Banner / Logo</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-medium text-gray-600 mb-1">Harga (Rp)</label>
+                            <input type="number" id="input-price" placeholder="150000" class="w-full border rounded-lg p-2 focus:ring-1 focus:ring-orange-500">
+                        </div>
+                        <div>
+                            <label class="block font-medium text-gray-600 mb-1">Stok / Kapasitas</label>
+                            <input type="text" id="input-stock" placeholder="100 Pcs / Unlimited" class="w-full border rounded-lg p-2 focus:ring-1 focus:ring-orange-500">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block font-medium text-gray-600 mb-1 text-xs">URL Gambar Produk (Opsional / Link Gambar)</label>
+                        <input type="text" id="input-image" placeholder="https://example.com/gambar.jpg" class="w-full border rounded-lg p-2 text-xs">
+                    </div>
+                    <div>
+                        <label class="block font-medium text-gray-600 mb-1 text-xs">Deskripsi Lengkap Produk</label>
+                        <textarea id="input-description" rows="3" placeholder="Jelaskan detail produk: bahan, ukuran, waktu pengerjaan, dll." class="w-full border rounded-lg p-2 text-xs"></textarea>
+                    </div>
+                    <button onclick="addProduct()" class="bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 py-2 rounded-lg text-xs transition">
+                        Simpan ke Database Supabase
+                    </button>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl shadow-sm border space-y-3">
+                    <h3 class="font-bold text-sm text-gray-700">Kelola Produk & Atur Promo/Diskon</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead>
+                                <tr class="bg-gray-50 text-gray-500 border-b">
+                                    <th class="p-2">Nama Produk</th>
+                                    <th class="p-2">Kategori</th>
+                                    <th class="p-2">Harga Normal</th>
+                                    <th class="p-2">Harga Promo</th>
+                                    <th class="p-2 text-center">Promo Aktif?</th>
+                                    <th class="p-2 text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-product-list" class="divide-y">
+                                <tr><td colspan="6" class="p-4 text-center text-gray-400">Memuat data...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= TAB: PESANAN MASUK ================= -->
+            <div id="tab-orders" class="hidden space-y-6">
+                <div class="bg-white p-4 rounded-xl shadow-sm border space-y-3">
+                    <div class="flex justify-between items-center border-b pb-2">
+                        <h3 class="font-bold text-sm text-gray-700"><i class="fa-solid fa-receipt text-orange-500 mr-1"></i> Pesanan Masuk</h3>
+                        <span onclick="fetchOrders()" class="text-xs text-orange-500 cursor-pointer"><i class="fa-solid fa-rotate"></i> Refresh</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead>
+                                <tr class="bg-gray-50 text-gray-500 border-b">
+                                    <th class="p-2">No. Pesanan</th>
+                                    <th class="p-2">Pemesan</th>
+                                    <th class="p-2">Total</th>
+                                    <th class="p-2">File / Biodata</th>
+                                    <th class="p-2">Status</th>
+                                    <th class="p-2 text-center">Nota</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-order-list" class="divide-y">
+                                <tr><td colspan="6" class="p-4 text-center text-gray-400">Memuat data...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= TAB: BANNER PROMO ================= -->
+            <div id="tab-banners" class="hidden space-y-6">
+                <div class="bg-white p-4 rounded-xl shadow-sm border space-y-4">
+                    <h3 class="font-bold text-sm text-gray-700 border-b pb-2"><i class="fa-solid fa-image text-orange-500 mr-1"></i> Tambah Banner Promo Beranda</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        <div>
+                            <label class="block font-medium text-gray-600 mb-1">URL Gambar Banner</label>
+                            <input type="text" id="banner-image" placeholder="https://example.com/banner.jpg" class="w-full border rounded-lg p-2">
+                        </div>
+                        <div>
+                            <label class="block font-medium text-gray-600 mb-1">Link Tujuan (opsional)</label>
+                            <input type="text" id="banner-link" placeholder="https://wa.me/62xxxx" class="w-full border rounded-lg p-2">
+                        </div>
+                        <div>
+                            <label class="block font-medium text-gray-600 mb-1">Judul (opsional, untuk catatan admin)</label>
+                            <input type="text" id="banner-title" placeholder="Promo Akhir Tahun" class="w-full border rounded-lg p-2">
+                        </div>
+                        <div>
+                            <label class="block font-medium text-gray-600 mb-1">Urutan Tampil</label>
+                            <input type="number" id="banner-order" placeholder="0" class="w-full border rounded-lg p-2">
+                        </div>
+                    </div>
+                    <button onclick="addBanner()" class="bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 py-2 rounded-lg text-xs transition">Simpan Banner</button>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl shadow-sm border space-y-3">
+                    <h3 class="font-bold text-sm text-gray-700">Daftar Banner</h3>
+                    <div id="banner-list" class="space-y-2"></div>
+                </div>
+            </div>
+
+            <!-- ================= TAB: METODE PEMBAYARAN ================= -->
+            <div id="tab-payments" class="hidden space-y-6">
+                <div class="bg-white p-4 rounded-xl shadow-sm border space-y-4">
+                    <h3 class="font-bold text-sm text-gray-700 border-b pb-2"><i class="fa-solid fa-money-bill-wave text-orange-500 mr-1"></i> Tambah Metode Pembayaran</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        <div>
+                            <label class="block font-medium text-gray-600 mb-1">Nama Metode</label>
+                            <input type="text" id="pm-label" placeholder="Transfer BCA" class="w-full border rounded-lg p-2">
+                        </div>
+                        <div>
+                            <label class="block font-medium text-gray-600 mb-1">Detail (no. rekening / instruksi)</label>
+                            <input type="text" id="pm-detail" placeholder="a.n. Faiz Grafika - 1234567890" class="w-full border rounded-lg p-2">
+                        </div>
+                    </div>
+                    <button onclick="addPaymentMethod()" class="bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 py-2 rounded-lg text-xs transition">Simpan Metode</button>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl shadow-sm border space-y-3">
+                    <h3 class="font-bold text-sm text-gray-700">Daftar Metode Pembayaran</h3>
+                    <div id="payment-list" class="space-y-2"></div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        const TOKEN_KEY = 'fg_admin_token';
+        const token = localStorage.getItem(TOKEN_KEY);
+
+        function authHeaders() {
+            return { 'Authorization': `Bearer ${localStorage.getItem(TOKEN_KEY)}` };
+        }
+
+        function logout() {
+            localStorage.removeItem(TOKEN_KEY);
+            window.location.replace('admin-login.html');
+        }
+
+        async function checkAuth() {
+            if (!token) { window.location.replace('admin-login.html'); return; }
+            try {
+                const res = await fetch('/api/admin/me', { headers: authHeaders() });
+                if (!res.ok) throw new Error('invalid session');
+                document.getElementById('auth-checking').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+                initDashboard();
+            } catch (err) {
+                localStorage.removeItem(TOKEN_KEY);
+                window.location.replace('admin-login.html');
+            }
+        }
+
+        function showTab(id) {
+            document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === id));
+        }
+
+        function formatRupiah(n) {
+            return 'Rp ' + Number(n || 0).toLocaleString('id-ID');
+        }
+
+        // ============== PRODUK & PROMO ==============
+        async function fetchAdminProducts() {
+            try {
+                const res = await fetch('/api/products');
+                const products = await res.json();
+                const tbody = document.getElementById('admin-product-list');
+
+                if (products.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-400">Belum ada produk.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = products.map(p => `
+                    <tr>
+                        <td class="p-2 font-medium">${p.name}</td>
+                        <td class="p-2">${p.category}</td>
+                        <td class="p-2">Rp ${Number(p.price).toLocaleString('id-ID')}</td>
+                        <td class="p-2">
+                            <input type="number" value="${p.discount_price || ''}" placeholder="Harga promo" class="w-24 border rounded p-1 text-xs" id="discount-price-${p.id}">
+                        </td>
+                        <td class="p-2 text-center">
+                            <input type="checkbox" ${p.discount_active ? 'checked' : ''} id="discount-active-${p.id}" class="w-4 h-4">
+                        </td>
+                        <td class="p-2 text-center space-x-1 whitespace-nowrap">
+                            <button onclick="savePromo('${p.id}')" class="bg-green-50 text-green-600 px-2 py-1 rounded font-medium hover:bg-green-100"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>
+                            <button onclick="deleteProduct('${p.id}')" class="bg-red-50 text-red-600 px-2 py-1 rounded font-medium hover:bg-red-100"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function addProduct() {
+            const name = document.getElementById('input-name').value;
+            const category = document.getElementById('input-category').value;
+            const price = document.getElementById('input-price').value;
+            const stock = document.getElementById('input-stock').value;
+            const image_url = document.getElementById('input-image').value;
+            const description = document.getElementById('input-description').value;
+
+            if (!name || !price || !stock) {
+                alert('Mohon lengkapi nama, harga, dan stok produk!');
+                return;
+            }
+
+            const res = await fetch('/api/products', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...authHeaders() },
+                body: JSON.stringify({ name, category, price: Number(price), stock, image_url, description })
+            });
+
+            if (res.ok) {
+                alert('Produk berhasil ditambahkan!');
+                document.getElementById('input-name').value = '';
+                document.getElementById('input-price').value = '';
+                document.getElementById('input-stock').value = '';
+                document.getElementById('input-image').value = '';
+                document.getElementById('input-description').value = '';
+                fetchAdminProducts();
+            } else {
+                const err = await res.json().catch(() => ({}));
+                alert('Gagal menyimpan produk: ' + (err.error || ''));
+            }
+        }
+
+        async function savePromo(id) {
+            const discount_price = document.getElementById(`discount-price-${id}`).value;
+            const discount_active = document.getElementById(`discount-active-${id}`).checked;
+
+            const res = await fetch(`/api/products/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', ...authHeaders() },
+                body: JSON.stringify({ discount_price: discount_price ? Number(discount_price) : null, discount_active })
+            });
+
+            if (res.ok) {
+                alert('Promo produk disimpan!');
+                fetchAdminProducts();
+            } else {
+                alert('Gagal menyimpan promo.');
+            }
+        }
+
+        async function deleteProduct(id) {
+            if (confirm('Yakin ingin menghapus produk ini?')) {
+                const res = await fetch(`/api/products/${id}`, { method: 'DELETE', headers: authHeaders() });
+                if (res.ok) {
+                    fetchAdminProducts();
+                } else {
+                    alert('Gagal menghapus produk.');
+                }
+            }
+        }
+
+        // ============== PESANAN ==============
+        async function fetchOrders() {
+            const tbody = document.getElementById('admin-order-list');
+            tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-400">Memuat data...</td></tr>';
+            try {
+                const res = await fetch('/api/orders', { headers: authHeaders() });
+                const orders = await res.json();
+
+                if (!Array.isArray(orders) || orders.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-400">Belum ada pesanan masuk.</td></tr>';
+                    return;
+                }
+
+                const statuses = ['Menunggu Pembayaran', 'Lunas', 'Diproses', 'Selesai', 'Dibatalkan'];
+
+                tbody.innerHTML = orders.map(o => {
+                    const fileLinks = (o.items || [])
+                        .filter(i => i.file_url)
+                        .map(i => `<a href="${i.file_url}" target="_blank" class="text-blue-500 underline block">${i.file_name || 'File'}</a>`)
+                        .join('');
+                    const biodata = o.biodata && Object.keys(o.biodata).length > 0
+                        ? `<div class="text-[10px] text-purple-600 mt-1">Acara: ${o.biodata.nama_acara || '-'}<br>Tgl: ${o.biodata.tanggal_acara || '-'}<br>Lokasi: ${o.biodata.lokasi_acara || '-'}</div>`
+                        : '';
+                    const designNotes = (o.items || [])
+                        .filter(i => i.note)
+                        .map(i => `<div class="text-[10px] text-amber-700 mt-1"><b>${i.name}:</b> ${i.note}</div>`)
+                        .join('');
+
+                    return `
+                    <tr>
+                        <td class="p-2 font-medium">${o.order_code}</td>
+                        <td class="p-2">${o.buyer_name}<br><span class="text-gray-400">${o.buyer_wa}</span></td>
+                        <td class="p-2 text-orange-600 font-bold">${formatRupiah(o.total_amount)}</td>
+                        <td class="p-2">${fileLinks || '-'}${biodata}${designNotes}</td>
+                        <td class="p-2">
+                            <select onchange="updateOrderStatus('${o.id}', this.value)" class="border rounded p-1 text-[11px]">
+                                ${statuses.map(s => `<option value="${s}" ${s === o.status ? 'selected' : ''}>${s}</option>`).join('')}
+                            </select>
+                        </td>
+                        <td class="p-2 text-center">
+                            <a href="nota.html?id=${o.id}" target="_blank" class="bg-orange-50 text-orange-600 px-2 py-1 rounded font-medium hover:bg-orange-100"><i class="fa-solid fa-file-invoice"></i> Lihat</a>
+                        </td>
+                    </tr>
+                `;
+                }).join('');
+            } catch (e) {
+                tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-red-500">Gagal memuat pesanan.</td></tr>';
+            }
+        }
+
+        async function updateOrderStatus(id, status) {
+            try {
+                const res = await fetch(`/api/orders/${id}/status`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+                    body: JSON.stringify({ status })
+                });
+                if (!res.ok) throw new Error();
+            } catch (err) {
+                alert('Gagal memperbarui status pesanan.');
+                fetchOrders();
+            }
+        }
+
+        // ============== BANNER PROMO ==============
+        async function fetchBanners() {
+            const wrap = document.getElementById('banner-list');
+            wrap.innerHTML = '<p class="text-xs text-gray-400">Memuat...</p>';
+            try {
+                const res = await fetch('/api/admin/banners', { headers: authHeaders() });
+                const banners = await res.json();
+                if (!Array.isArray(banners) || banners.length === 0) {
+                    wrap.innerHTML = '<p class="text-xs text-gray-400">Belum ada banner.</p>';
+                    return;
+                }
+                wrap.innerHTML = banners.map(b => `
+                    <div class="flex items-center gap-3 border rounded-lg p-2">
+                        <img src="${b.image_url}" class="w-20 h-12 object-cover rounded bg-gray-100">
+                        <div class="flex-1 text-xs">
+                            <p class="font-medium">${b.title || '(tanpa judul)'}</p>
+                            <p class="text-gray-400 truncate">${b.image_url}</p>
+                        </div>
+                        <label class="flex items-center gap-1 text-[11px]">
+                            <input type="checkbox" ${b.is_active ? 'checked' : ''} onchange="toggleBanner('${b.id}', this.checked)"> Aktif
+                        </label>
+                        <button onclick="deleteBanner('${b.id}')" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `).join('');
+            } catch (err) {
+                wrap.innerHTML = '<p class="text-xs text-red-500">Gagal memuat banner.</p>';
+            }
+        }
+
+        async function addBanner() {
+            const image_url = document.getElementById('banner-image').value.trim();
+            const link_url = document.getElementById('banner-link').value.trim();
+            const title = document.getElementById('banner-title').value.trim();
+            const sort_order = document.getElementById('banner-order').value;
+
+            if (!image_url) { alert('URL gambar banner wajib diisi.'); return; }
+
+            const res = await fetch('/api/admin/banners', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...authHeaders() },
+                body: JSON.stringify({ image_url, link_url, title, sort_order: sort_order ? Number(sort_order) : 0 })
+            });
+
+            if (res.ok) {
+                document.getElementById('banner-image').value = '';
+                document.getElementById('banner-link').value = '';
+                document.getElementById('banner-title').value = '';
+                document.getElementById('banner-order').value = '';
+                fetchBanners();
+            } else {
+                alert('Gagal menyimpan banner.');
+            }
+        }
+
+        async function toggleBanner(id, is_active) {
+            await fetch(`/api/admin/banners/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', ...authHeaders() },
+                body: JSON.stringify({ is_active })
+            });
+        }
+
+        async function deleteBanner(id) {
+            if (!confirm('Hapus banner ini?')) return;
+            await fetch(`/api/admin/banners/${id}`, { method: 'DELETE', headers: authHeaders() });
+            fetchBanners();
+        }
+
+        // ============== METODE PEMBAYARAN ==============
+        async function fetchPaymentMethods() {
+            const wrap = document.getElementById('payment-list');
+            wrap.innerHTML = '<p class="text-xs text-gray-400">Memuat...</p>';
+            try {
+                const res = await fetch('/api/admin/payment-methods', { headers: authHeaders() });
+                const methods = await res.json();
+                if (!Array.isArray(methods) || methods.length === 0) {
+                    wrap.innerHTML = '<p class="text-xs text-gray-400">Belum ada metode pembayaran.</p>';
+                    return;
+                }
+                wrap.innerHTML = methods.map(m => `
+                    <div class="flex items-center gap-3 border rounded-lg p-2 text-xs">
+                        <div class="flex-1">
+                            <p class="font-medium">${m.label}</p>
+                            <p class="text-gray-400">${m.detail || '-'}</p>
+                        </div>
+                        <label class="flex items-center gap-1 text-[11px]">
+                            <input type="checkbox" ${m.is_active ? 'checked' : ''} onchange="togglePaymentMethod('${m.id}', this.checked)"> Aktif
+                        </label>
+                        <button onclick="deletePaymentMethod('${m.id}')" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `).join('');
+            } catch (err) {
+                wrap.innerHTML = '<p class="text-xs text-red-500">Gagal memuat metode pembayaran.</p>';
+            }
+        }
+
+        async function addPaymentMethod() {
+            const label = document.getElementById('pm-label').value.trim();
+            const detail = document.getElementById('pm-detail').value.trim();
+            if (!label) { alert('Nama metode pembayaran wajib diisi.'); return; }
+
+            const res = await fetch('/api/admin/payment-methods', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...authHeaders() },
+                body: JSON.stringify({ label, detail })
+            });
+
+            if (res.ok) {
+                document.getElementById('pm-label').value = '';
+                document.getElementById('pm-detail').value = '';
+                fetchPaymentMethods();
+            } else {
+                alert('Gagal menyimpan metode pembayaran.');
+            }
+        }
+
+        async function togglePaymentMethod(id, is_active) {
+            await fetch(`/api/admin/payment-methods/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', ...authHeaders() },
+                body: JSON.stringify({ is_active })
+            });
+        }
+
+        async function deletePaymentMethod(id) {
+            if (!confirm('Hapus metode pembayaran ini?')) return;
+            await fetch(`/api/admin/payment-methods/${id}`, { method: 'DELETE', headers: authHeaders() });
+            fetchPaymentMethods();
+        }
+
+        function initDashboard() {
+            fetchAdminProducts();
+            fetchOrders();
+            fetchBanners();
+            fetchPaymentMethods();
+        }
+
+        checkAuth();
+    </script>
+</body>
+</html>

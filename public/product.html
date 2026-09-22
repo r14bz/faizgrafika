@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detail Produk - FaizGrafika</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #f3f4f6; }
+        .brand-font { font-family: 'Cinzel', serif; letter-spacing: 0.03em; }
+        .star-pick i { cursor: pointer; font-size: 22px; }
+    </style>
+</head>
+<body class="text-gray-800 pb-24">
+
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-md mx-auto px-4 py-3 flex items-center space-x-3">
+            <a href="index.html" class="text-gray-500 hover:text-orange-500"><i class="fa-solid fa-arrow-left"></i></a>
+            <span class="brand-font font-bold text-sm text-gray-900">FAIZGRAFIKA</span>
+        </div>
+    </header>
+
+    <main class="max-w-md mx-auto p-4 space-y-4">
+        <div id="loading-state" class="text-center text-xs text-gray-400 py-16">Memuat detail produk...</div>
+        <div id="error-state" class="hidden text-center text-xs text-red-500 py-16">Produk tidak ditemukan.</div>
+
+        <div id="product-content" class="hidden space-y-4">
+            <!-- Gambar & Info Utama -->
+            <div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
+                <div class="h-56 bg-gray-100 flex items-center justify-center" id="product-image-wrap">
+                    <i class="fa-solid fa-image text-gray-300 text-4xl"></i>
+                </div>
+                <div class="p-4 space-y-2">
+                    <span id="p-category" class="inline-block bg-orange-100 text-orange-600 text-[10px] font-semibold px-2 py-0.5 rounded"></span>
+                    <h1 id="p-name" class="font-bold text-lg text-gray-900"></h1>
+
+                    <div class="flex items-center gap-2">
+                        <span id="p-stars" class="text-amber-400 text-sm"></span>
+                        <span id="p-rating-text" class="text-xs text-gray-500"></span>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <span id="p-old-price" class="text-sm text-gray-400 line-through hidden"></span>
+                        <span id="p-price" class="text-xl font-bold text-orange-600"></span>
+                        <span id="p-discount-badge" class="hidden bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">PROMO</span>
+                    </div>
+                    <p class="text-xs text-gray-400">Stok: <span id="p-stock"></span></p>
+                </div>
+            </div>
+
+            <!-- Deskripsi Lengkap -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-2">
+                <h3 class="font-bold text-sm text-gray-700"><i class="fa-solid fa-align-left text-orange-500 mr-1"></i> Deskripsi Produk</h3>
+                <p id="p-description" class="text-xs text-gray-600 leading-relaxed whitespace-pre-line">Belum ada deskripsi untuk produk ini.</p>
+            </div>
+
+            <!-- Ringkasan Rating ala Shopee -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-3">
+                <h3 class="font-bold text-sm text-gray-700"><i class="fa-solid fa-star text-amber-400 mr-1"></i> Penilaian Produk</h3>
+                <div class="flex items-center gap-4">
+                    <div class="text-center">
+                        <p id="summary-avg" class="text-3xl font-bold text-orange-600">0.0</p>
+                        <p id="summary-stars" class="text-amber-400 text-xs"></p>
+                        <p id="summary-count" class="text-[10px] text-gray-400 mt-0.5">0 ulasan</p>
+                    </div>
+                    <div class="flex-1 space-y-1" id="rating-bars"></div>
+                </div>
+            </div>
+
+            <!-- Form Tambah Ulasan -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-2">
+                <h3 class="font-bold text-sm text-gray-700">Beri Ulasan</h3>
+                <input type="text" id="review-name" placeholder="Nama Anda" class="w-full border rounded-lg p-2 text-xs">
+                <div class="star-pick text-gray-300" id="star-picker">
+                    <i class="fa-solid fa-star" data-val="1"></i>
+                    <i class="fa-solid fa-star" data-val="2"></i>
+                    <i class="fa-solid fa-star" data-val="3"></i>
+                    <i class="fa-solid fa-star" data-val="4"></i>
+                    <i class="fa-solid fa-star" data-val="5"></i>
+                </div>
+                <textarea id="review-comment" rows="2" placeholder="Bagaimana pendapat Anda tentang produk ini?" class="w-full border rounded-lg p-2 text-xs"></textarea>
+                <button onclick="submitReview()" class="w-full bg-gray-900 hover:bg-gray-800 text-white text-xs font-bold py-2 rounded-lg transition">Kirim Ulasan</button>
+            </div>
+
+            <!-- Daftar Ulasan Pembeli -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-3">
+                <h3 class="font-bold text-sm text-gray-700">Ulasan Pembeli</h3>
+                <div id="review-list" class="space-y-3 text-xs"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Tombol Tambah Keranjang Melayang -->
+    <div id="bottom-bar" class="hidden fixed bottom-0 left-0 right-0 bg-white border-t p-3 z-40">
+        <div class="max-w-md mx-auto">
+            <button onclick="addToCartFromDetail()" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl text-sm transition">
+                <i class="fa-solid fa-cart-plus mr-1"></i> Tambah ke Keranjang
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const CART_KEY = 'faizgrafika_cart';
+        let currentProduct = null;
+        let selectedRating = 0;
+
+        function formatRupiah(n) {
+            return 'Rp ' + Number(n || 0).toLocaleString('id-ID');
+        }
+
+        function starsMarkup(avg, size) {
+            const rounded = Math.round(Number(avg || 0));
+            let html = '';
+            for (let i = 1; i <= 5; i++) {
+                html += `<i class="fa-solid fa-star${i <= rounded ? '' : ' text-gray-200'}"></i>`;
+            }
+            return html;
+        }
+
+        function effectivePrice(p) {
+            return (p.discount_active && p.discount_price != null && Number(p.discount_price) < Number(p.price))
+                ? Number(p.discount_price)
+                : Number(p.price);
+        }
+
+        function getProductId() {
+            return new URLSearchParams(window.location.search).get('id');
+        }
+
+        async function loadProduct() {
+            const id = getProductId();
+            if (!id) { showError(); return; }
+            try {
+                const res = await fetch(`/api/products/${id}`);
+                if (!res.ok) throw new Error('not found');
+                const product = await res.json();
+                currentProduct = product;
+                renderProduct(product);
+            } catch (err) {
+                showError();
+            }
+        }
+
+        function showError() {
+            document.getElementById('loading-state').classList.add('hidden');
+            document.getElementById('error-state').classList.remove('hidden');
+        }
+
+        function renderProduct(p) {
+            document.getElementById('loading-state').classList.add('hidden');
+            document.getElementById('product-content').classList.remove('hidden');
+            document.getElementById('bottom-bar').classList.remove('hidden');
+
+            document.getElementById('product-image-wrap').innerHTML = p.image_url
+                ? `<img src="${p.image_url}" class="w-full h-full object-cover">`
+                : '<i class="fa-solid fa-image text-gray-300 text-4xl"></i>';
+
+            document.getElementById('p-category').innerText = p.category;
+            document.getElementById('p-name').innerText = p.name;
+            document.getElementById('p-stock').innerText = p.stock;
+            document.getElementById('p-description').innerText = p.description && p.description.trim()
+                ? p.description
+                : 'Belum ada deskripsi untuk produk ini.';
+
+            const price = effectivePrice(p);
+            const hasDiscount = price < Number(p.price);
+            document.getElementById('p-price').innerText = formatRupiah(price);
+            if (hasDiscount) {
+                document.getElementById('p-old-price').innerText = formatRupiah(p.price);
+                document.getElementById('p-old-price').classList.remove('hidden');
+                document.getElementById('p-discount-badge').classList.remove('hidden');
+            }
+
+            document.getElementById('p-stars').innerHTML = starsMarkup(p.rating_avg);
+            document.getElementById('p-rating-text').innerText = `${Number(p.rating_avg || 0).toFixed(1)} (${p.rating_count || 0} ulasan)`;
+
+            renderRatingSummary(p);
+            renderReviews(p.reviews || []);
+        }
+
+        function renderRatingSummary(p) {
+            document.getElementById('summary-avg').innerText = Number(p.rating_avg || 0).toFixed(1);
+            document.getElementById('summary-stars').innerHTML = starsMarkup(p.rating_avg);
+            document.getElementById('summary-count').innerText = `${p.rating_count || 0} ulasan`;
+
+            const reviews = p.reviews || [];
+            const counts = [0, 0, 0, 0, 0];
+            reviews.forEach(r => { if (r.rating >= 1 && r.rating <= 5) counts[r.rating - 1]++; });
+            const total = reviews.length || 1;
+
+            const bars = document.getElementById('rating-bars');
+            bars.innerHTML = [5, 4, 3, 2, 1].map(star => {
+                const c = counts[star - 1];
+                const pct = Math.round((c / total) * 100);
+                return `
+                    <div class="flex items-center gap-2 text-[10px] text-gray-500">
+                        <span class="w-6">${star}★</span>
+                        <div class="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                            <div class="h-full bg-amber-400" style="width:${pct}%"></div>
+                        </div>
+                        <span class="w-6 text-right">${c}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderReviews(reviews) {
+            const wrap = document.getElementById('review-list');
+            if (!reviews || reviews.length === 0) {
+                wrap.innerHTML = '<p class="text-gray-400 text-center py-4">Belum ada ulasan. Jadilah yang pertama!</p>';
+                return;
+            }
+            wrap.innerHTML = reviews.map(r => `
+                <div class="border-b border-gray-100 pb-2">
+                    <div class="flex items-center justify-between">
+                        <span class="font-semibold text-gray-800">${r.reviewer_name}</span>
+                        <span class="text-amber-400">${starsMarkup(r.rating)}</span>
+                    </div>
+                    ${r.comment ? `<p class="text-gray-600 mt-1">${r.comment}</p>` : ''}
+                    <p class="text-[10px] text-gray-300 mt-1">${new Date(r.created_at).toLocaleDateString('id-ID', { dateStyle: 'medium' })}</p>
+                </div>
+            `).join('');
+        }
+
+        // Star picker interaktif
+        document.querySelectorAll('#star-picker i').forEach(star => {
+            star.addEventListener('click', () => {
+                selectedRating = Number(star.dataset.val);
+                document.querySelectorAll('#star-picker i').forEach(s => {
+                    s.classList.toggle('text-amber-400', Number(s.dataset.val) <= selectedRating);
+                    s.classList.toggle('text-gray-300', Number(s.dataset.val) > selectedRating);
+                });
+            });
+        });
+
+        async function submitReview() {
+            const id = getProductId();
+            const reviewer_name = document.getElementById('review-name').value.trim();
+            const comment = document.getElementById('review-comment').value.trim();
+
+            if (!reviewer_name) { alert('Mohon isi nama Anda.'); return; }
+            if (!selectedRating) { alert('Mohon pilih rating bintang.'); return; }
+
+            try {
+                const res = await fetch(`/api/products/${id}/reviews`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reviewer_name, rating: selectedRating, comment })
+                });
+                const result = await res.json();
+                if (!res.ok || !result.success) throw new Error(result.error || 'Gagal mengirim ulasan');
+
+                document.getElementById('review-name').value = '';
+                document.getElementById('review-comment').value = '';
+                selectedRating = 0;
+                document.querySelectorAll('#star-picker i').forEach(s => { s.classList.remove('text-amber-400'); s.classList.add('text-gray-300'); });
+
+                await loadProduct(); // refresh rating & daftar ulasan
+                alert('Terima kasih atas ulasan Anda!');
+            } catch (err) {
+                alert('Gagal mengirim ulasan: ' + err.message);
+            }
+        }
+
+        function addToCartFromDetail() {
+            if (!currentProduct) return;
+            const cart = JSON.parse(localStorage.getItem(CART_KEY)) || [];
+            const price = effectivePrice(currentProduct);
+            const existing = cart.find(i => i.name === currentProduct.name);
+            if (existing) {
+                existing.qty += 1;
+            } else {
+                cart.push({ name: currentProduct.name, price, qty: 1, category: currentProduct.category });
+            }
+            localStorage.setItem(CART_KEY, JSON.stringify(cart));
+            alert('Ditambahkan ke keranjang!');
+        }
+
+        loadProduct();
+    </script>
+</body>
+</html>

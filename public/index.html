@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FaizGrafika - Cetak Kilat & Desain Profesional</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); min-height: 100vh; }
+        .brand-font { font-family: 'Cinzel', serif; letter-spacing: 0.03em; }
+        .star-row i { font-size: 10px; }
+    </style>
+</head>
+<body class="text-gray-800 pb-20">
+
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-print text-orange-500 text-2xl"></i>
+                <span class="brand-font font-bold text-lg text-gray-900">FAIZGRAFIKA</span>
+            </div>
+            <div class="flex items-center space-x-3">
+                <button onclick="openCart()" class="relative text-gray-600 hover:text-orange-500">
+                    <i class="fa-solid fa-cart-shopping text-lg"></i>
+                    <span id="cart-badge" class="hidden absolute -top-2 -right-2 bg-orange-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">0</span>
+                </button>
+                <a href="admin.html" class="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-md font-semibold"><i class="fa-solid fa-lock"></i> Admin</a>
+            </div>
+        </div>
+        <div class="max-w-md mx-auto px-4 pb-3">
+            <div class="relative">
+                <input type="text" id="search-input" placeholder="Cari undangan, banner, fotocopy..." class="w-full bg-gray-100 text-sm rounded-full pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-2.5 text-gray-400 text-sm"></i>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-md mx-auto p-4 space-y-4">
+        <!-- Banner Promo (dinamis dari panel admin, fallback ke banner default) -->
+        <div id="banner-slot">
+            <div class="bg-gradient-to-r from-orange-500 to-amber-500 rounded-2xl p-4 text-white shadow-lg relative overflow-hidden">
+                <div class="relative z-10">
+                    <h2 class="text-lg font-bold">Cetak Kilat & Desain Custom</h2>
+                    <p class="text-xs text-orange-100 mt-1">Undangan, Banner, Dokumen & Logo Berkualitas Tinggi.</p>
+                </div>
+                <i class="fa-solid fa-layer-group absolute -right-4 -bottom-4 text-7xl text-orange-400 opacity-30"></i>
+            </div>
+        </div>
+
+        <!-- Kategori Menu -->
+        <div class="bg-white p-3 rounded-2xl shadow-sm grid grid-cols-4 gap-2 text-center">
+            <button onclick="filterCategory('Undangan')" class="p-2 hover:bg-orange-50 rounded-xl transition">
+                <div class="w-10 h-10 mx-auto bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mb-1"><i class="fa-solid fa-envelope-open-text"></i></div>
+                <span class="text-[11px] font-medium">Undangan</span>
+            </button>
+            <button onclick="filterCategory('Cetak Dokumen')" class="p-2 hover:bg-orange-50 rounded-xl transition">
+                <div class="w-10 h-10 mx-auto bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-1"><i class="fa-solid fa-file-lines"></i></div>
+                <span class="text-[11px] font-medium">Dokumen</span>
+            </button>
+            <button onclick="filterCategory('Fotocopy')" class="p-2 hover:bg-orange-50 rounded-xl transition">
+                <div class="w-10 h-10 mx-auto bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-1"><i class="fa-solid fa-copy"></i></div>
+                <span class="text-[11px] font-medium">Fotocopy</span>
+            </button>
+            <button onclick="filterCategory('Desain Banner / Logo')" class="p-2 hover:bg-orange-50 rounded-xl transition">
+                <div class="w-10 h-10 mx-auto bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mb-1"><i class="fa-solid fa-pen-nib"></i></div>
+                <span class="text-[11px] font-medium">Banner/Logo</span>
+            </button>
+        </div>
+
+        <!-- Daftar Produk -->
+        <div>
+            <h3 class="font-bold text-sm text-gray-700 mb-3 flex items-center justify-between">
+                <span>Produk & Layanan Pilihan</span>
+                <span onclick="loadProducts()" class="text-xs text-orange-500 font-normal cursor-pointer">Semua Produk</span>
+            </h3>
+
+            <div class="grid grid-cols-2 gap-3" id="product-grid">
+                <!-- Dinamis dari database -->
+                <div class="col-span-2 text-center py-8 text-gray-500 text-xs">Memuat produk dari database...</div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Tombol Keranjang Melayang (muncul jika ada isi) -->
+    <button id="floating-cart-btn" onclick="openCart()" class="hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-40 bg-gray-900 text-white text-xs font-semibold px-5 py-3 rounded-full shadow-lg items-center space-x-2">
+        <i class="fa-solid fa-cart-shopping"></i>
+        <span id="floating-cart-text">Keranjang (0) · Rp 0</span>
+    </button>
+
+    <!-- Modal Keranjang -->
+    <div id="cart-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-white w-full max-w-md rounded-t-2xl sm:rounded-2xl p-4 space-y-3 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="font-bold text-sm text-gray-800"><i class="fa-solid fa-cart-shopping text-orange-500 mr-1"></i> Keranjang Saya</h3>
+                <button onclick="closeCart()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <div id="cart-items" class="space-y-2 text-xs">
+                <!-- diisi dinamis -->
+            </div>
+
+            <div class="border-t pt-3 flex justify-between items-center">
+                <span class="text-xs font-semibold text-gray-600">Total Belanja</span>
+                <span id="cart-total" class="font-bold text-orange-600 text-sm">Rp 0</span>
+            </div>
+
+            <button id="cart-checkout-btn" onclick="openCheckout()" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 rounded-xl text-xs transition disabled:opacity-40" disabled>
+                Lanjut ke Pembayaran
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal Checkout -->
+    <div id="checkout-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-white w-full max-w-md rounded-t-2xl sm:rounded-2xl p-4 space-y-3 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="font-bold text-sm text-gray-800">Form Pesanan & Pembayaran</h3>
+                <button onclick="closeCheckout()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <div class="bg-orange-50 p-3 rounded-xl space-y-1">
+                <p class="text-xs text-gray-500">Ringkasan Pesanan:</p>
+                <div id="checkout-summary" class="text-xs text-gray-700 space-y-0.5"></div>
+                <p id="checkout-total" class="font-bold text-orange-600 text-sm mt-1 pt-1 border-t border-orange-100">Total: Rp 0</p>
+            </div>
+
+            <!-- Upload file khusus item Cetak Dokumen / Fotocopy -->
+            <div id="checkout-uploads" class="space-y-2"></div>
+            <div id="checkout-notes" class="space-y-2"></div>
+
+            <!-- Biodata khusus pesanan Undangan -->
+            <div id="checkout-biodata" class="hidden space-y-2 bg-purple-50 p-3 rounded-xl">
+                <p class="text-xs font-semibold text-purple-700"><i class="fa-solid fa-envelope-open-text mr-1"></i> Biodata Undangan (untuk broadcast)</p>
+                <div>
+                    <label class="block font-medium text-gray-600 mb-1 text-xs">Nama Mempelai / Nama Acara</label>
+                    <input type="text" id="biodata-nama-acara" class="w-full border rounded-lg p-2 text-xs" placeholder="Contoh: Pernikahan Andi & Sari">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-medium text-gray-600 mb-1 text-xs">Tanggal Acara</label>
+                        <input type="date" id="biodata-tanggal" class="w-full border rounded-lg p-2 text-xs">
+                    </div>
+                    <div>
+                        <label class="block font-medium text-gray-600 mb-1 text-xs">Lokasi Acara</label>
+                        <input type="text" id="biodata-lokasi" class="w-full border rounded-lg p-2 text-xs" placeholder="Nama gedung/alamat">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-medium text-gray-600 mb-1 text-xs">Catatan Tambahan (opsional)</label>
+                    <textarea id="biodata-catatan" rows="2" class="w-full border rounded-lg p-2 text-xs" placeholder="Contoh: mohon desain nuansa emas"></textarea>
+                </div>
+            </div>
+
+            <div class="space-y-2 text-xs">
+                <div>
+                    <label class="block font-medium text-gray-600 mb-1">Nama Pemesan</label>
+                    <input type="text" id="buyer-name" class="w-full border rounded-lg p-2 focus:ring-1 focus:ring-orange-500" placeholder="Masukkan nama lengkap">
+                </div>
+                <div>
+                    <label class="block font-medium text-gray-600 mb-1">Nomor WhatsApp</label>
+                    <input type="text" id="buyer-wa" class="w-full border rounded-lg p-2 focus:ring-1 focus:ring-orange-500" placeholder="08xxxxxxxxxx">
+                </div>
+                <div>
+                    <label class="block font-medium text-gray-600 mb-1">Metode Pembayaran</label>
+                    <select id="payment-method" class="w-full border rounded-lg p-2 bg-white">
+                        <option>Memuat metode pembayaran...</option>
+                    </select>
+                </div>
+                <p class="text-[10px] text-gray-400">*Pembayaran untuk sementara dikonfirmasi langsung via chat WhatsApp Admin setelah pesanan dibuat.</p>
+            </div>
+
+            <button id="submit-order-btn" onclick="submitOrder()" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 rounded-xl text-xs transition">
+                Konfirmasi & Pesan via WhatsApp
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const ADMIN_WA_NUMBER = '6282129960218'; // Ganti dengan nomor WhatsApp Admin Anda
+        const CART_KEY = 'faizgrafika_cart';
+        const UPLOAD_CATEGORIES = ['Cetak Dokumen', 'Fotocopy'];
+        const NOTE_CATEGORIES = ['Desain Banner / Logo']; // kategori yang menampilkan kolom catatan konsumen
+
+        let allProducts = [];
+        let allPaymentMethods = [];
+
+        // ============== HELPER: FORMAT & CART STORAGE ==============
+        function formatRupiah(n) {
+            return 'Rp ' + Number(n || 0).toLocaleString('id-ID');
+        }
+
+        function effectivePrice(p) {
+            return (p.discount_active && p.discount_price != null && Number(p.discount_price) < Number(p.price))
+                ? Number(p.discount_price)
+                : Number(p.price);
+        }
+
+        function starsHtml(avg) {
+            const rounded = Math.round(Number(avg || 0));
+            let html = '<span class="star-row text-amber-400">';
+            for (let i = 1; i <= 5; i++) {
+                html += `<i class="fa-solid fa-star${i <= rounded ? '' : ' text-gray-200'}"></i>`;
+            }
+            html += '</span>';
+            return html;
+        }
+
+        function getCart() {
+            try { return JSON.parse(localStorage.getItem(CART_KEY)) || []; }
+            catch (e) { return []; }
+        }
+
+        function saveCart(cart) {
+            localStorage.setItem(CART_KEY, JSON.stringify(cart));
+            renderCartBadge();
+        }
+
+        function cartTotal(cart) {
+            return cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+        }
+
+        function cartCount(cart) {
+            return cart.reduce((sum, i) => sum + i.qty, 0);
+        }
+
+        function renderCartBadge() {
+            const cart = getCart();
+            const count = cartCount(cart);
+            const badge = document.getElementById('cart-badge');
+            const floatBtn = document.getElementById('floating-cart-btn');
+            const floatText = document.getElementById('floating-cart-text');
+
+            if (count > 0) {
+                badge.classList.remove('hidden');
+                badge.innerText = count;
+                floatBtn.classList.remove('hidden');
+                floatBtn.classList.add('flex');
+                floatText.innerText = `Keranjang (${count}) · ${formatRupiah(cartTotal(cart))}`;
+            } else {
+                badge.classList.add('hidden');
+                floatBtn.classList.add('hidden');
+                floatBtn.classList.remove('flex');
+            }
+        }
+
+        // ============== BANNER PROMO (dinamis dari admin) ==============
+        let bannerList = [];
+        let bannerIdx = 0;
+        async function loadBanners() {
+            try {
+                const res = await fetch('/api/banners');
+                const banners = await res.json();
+                if (Array.isArray(banners) && banners.length > 0) {
+                    bannerList = banners;
+                    renderBanner();
+                    if (banners.length > 1) {
+                        setInterval(() => {
+                            bannerIdx = (bannerIdx + 1) % bannerList.length;
+                            renderBanner();
+                        }, 4000);
+                    }
+                }
+                // Jika tidak ada banner aktif, banner default (gradient) yang sudah ada di HTML tetap tampil.
+            } catch (err) { /* biarkan banner default tampil */ }
+        }
+
+        function renderBanner() {
+            const b = bannerList[bannerIdx];
+            const slot = document.getElementById('banner-slot');
+            const content = `
+                <img src="${b.image_url}" alt="${b.title || 'Promo'}" class="w-full h-32 object-cover rounded-2xl shadow-lg">
+            `;
+            slot.innerHTML = b.link_url
+                ? `<a href="${b.link_url}" target="_blank" rel="noopener">${content}</a>`
+                : content;
+        }
+
+        // ============== METODE PEMBAYARAN (dinamis dari admin) ==============
+        async function loadPaymentMethods() {
+            try {
+                const res = await fetch('/api/payment-methods');
+                allPaymentMethods = await res.json();
+                const sel = document.getElementById('payment-method');
+                if (Array.isArray(allPaymentMethods) && allPaymentMethods.length > 0) {
+                    sel.innerHTML = allPaymentMethods.map(m => `<option value="${m.label}">${m.label}</option>`).join('');
+                } else {
+                    sel.innerHTML = '<option>Transfer Bank / QRIS / COD</option>';
+                }
+            } catch (err) {
+                document.getElementById('payment-method').innerHTML = '<option>Transfer Bank / QRIS / COD</option>';
+            }
+        }
+
+        // ============== PRODUK ==============
+        async function loadProducts() {
+            try {
+                const res = await fetch('/api/products');
+                allProducts = await res.json();
+                renderProducts(allProducts);
+            } catch (err) {
+                document.getElementById('product-grid').innerHTML = '<p class="col-span-2 text-center text-xs text-red-500">Gagal memuat produk. Periksa koneksi Supabase Anda.</p>';
+            }
+        }
+
+        function renderProducts(products) {
+            const grid = document.getElementById('product-grid');
+            if (products.length === 0) {
+                grid.innerHTML = '<p class="col-span-2 text-center text-xs text-gray-400 py-6">Belum ada produk tersedia.</p>';
+                return;
+            }
+            grid.innerHTML = products.map(p => {
+                const price = effectivePrice(p);
+                const hasDiscount = price < Number(p.price);
+                return `
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden flex flex-col justify-between border border-gray-100">
+                    <a href="product.html?id=${p.id}" class="block">
+                        <div class="h-32 bg-gray-100 relative flex items-center justify-center">
+                            ${p.image_url ? `<img src="${p.image_url}" class="w-full h-full object-cover">` : '<i class="fa-solid fa-image text-gray-400 text-2xl"></i>'}
+                            <span class="absolute top-2 left-2 bg-orange-500 text-white text-[9px] px-1.5 py-0.5 rounded">${p.category}</span>
+                            ${hasDiscount ? '<span class="absolute top-2 right-2 bg-red-500 text-white text-[9px] px-1.5 py-0.5 rounded font-bold">PROMO</span>' : ''}
+                        </div>
+                        <div class="p-2">
+                            <h4 class="text-xs font-semibold text-gray-800 line-clamp-2">${p.name}</h4>
+                            <div class="flex items-center gap-1 mt-0.5">
+                                ${starsHtml(p.rating_avg)}
+                                <span class="text-[9px] text-gray-400">(${p.rating_count || 0})</span>
+                            </div>
+                            ${hasDiscount ? `<p class="text-[10px] text-gray-400 line-through">${formatRupiah(p.price)}</p>` : ''}
+                            <p class="text-xs text-orange-600 font-bold">${formatRupiah(price)}</p>
+                            <p class="text-[10px] text-gray-400 mt-0.5">Stok: ${p.stock}</p>
+                        </div>
+                    </a>
+                    <div class="p-2 pt-0">
+                        <button onclick='addToCart(${JSON.stringify(p.name)}, ${price}, ${JSON.stringify(p.category)})' class="w-full bg-orange-500 hover:bg-orange-600 text-white text-xs py-1.5 rounded-lg font-medium transition">
+                            <i class="fa-solid fa-cart-plus"></i> Tambah Keranjang
+                        </button>
+                    </div>
+                </div>
+            `;
+            }).join('');
+        }
+
+        function filterCategory(cat) {
+            const filtered = allProducts.filter(p => p.category === cat);
+            renderProducts(filtered);
+        }
+
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            const keyword = e.target.value.toLowerCase();
+            const filtered = allProducts.filter(p => p.name.toLowerCase().includes(keyword) || p.category.toLowerCase().includes(keyword));
+            renderProducts(filtered);
+        });
+
+        // ============== KERANJANG ==============
+        function addToCart(name, price, category) {
+            const cart = getCart();
+            const existing = cart.find(i => i.name === name);
+            if (existing) {
+                existing.qty += 1;
+            } else {
+                cart.push({ name, price, qty: 1, category: category || '' });
+            }
+            saveCart(cart);
+
+            const btn = event.currentTarget;
+            const oldHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Ditambahkan';
+            setTimeout(() => { btn.innerHTML = oldHtml; }, 900);
+        }
+
+        function changeQty(index, delta) {
+            const cart = getCart();
+            if (!cart[index]) return;
+            cart[index].qty += delta;
+            if (cart[index].qty <= 0) cart.splice(index, 1);
+            saveCart(cart);
+            renderCart();
+        }
+
+        function removeFromCart(index) {
+            const cart = getCart();
+            cart.splice(index, 1);
+            saveCart(cart);
+            renderCart();
+        }
+
+        function renderCart() {
+            const cart = getCart();
+            const wrap = document.getElementById('cart-items');
+            const checkoutBtn = document.getElementById('cart-checkout-btn');
+
+            if (cart.length === 0) {
+                wrap.innerHTML = '<p class="text-center text-gray-400 py-6">Keranjang masih kosong. Yuk tambahkan produk!</p>';
+                checkoutBtn.disabled = true;
+            } else {
+                wrap.innerHTML = cart.map((item, idx) => `
+                    <div class="flex items-center justify-between bg-gray-50 rounded-lg p-2">
+                        <div class="flex-1 pr-2">
+                            <p class="font-medium text-gray-800 line-clamp-1">${item.name}</p>
+                            <p class="text-orange-600 font-bold">${formatRupiah(item.price)}</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="changeQty(${idx}, -1)" class="w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center">−</button>
+                            <span class="w-5 text-center font-semibold">${item.qty}</span>
+                            <button onclick="changeQty(${idx}, 1)" class="w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center">+</button>
+                            <button onclick="removeFromCart(${idx})" class="text-red-400 hover:text-red-600 ml-1"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                `).join('');
+                checkoutBtn.disabled = false;
+            }
+
+            document.getElementById('cart-total').innerText = formatRupiah(cartTotal(cart));
+        }
+
+        function openCart() {
+            renderCart();
+            document.getElementById('cart-modal').classList.remove('hidden');
+        }
+
+        function closeCart() {
+            document.getElementById('cart-modal').classList.add('hidden');
+        }
+
+        // ============== CHECKOUT ==============
+        function openCheckout() {
+            const cart = getCart();
+            if (cart.length === 0) return;
+
+            document.getElementById('checkout-summary').innerHTML = cart.map(i =>
+                `<div class="flex justify-between"><span>${i.qty}x ${i.name}</span><span>${formatRupiah(i.price * i.qty)}</span></div>`
+            ).join('');
+            document.getElementById('checkout-total').innerText = 'Total: ' + formatRupiah(cartTotal(cart));
+
+            // Render slot upload file untuk item Cetak Dokumen / Fotocopy
+            const uploadItems = cart.map((i, idx) => ({ ...i, idx })).filter(i => UPLOAD_CATEGORIES.includes(i.category));
+            const uploadWrap = document.getElementById('checkout-uploads');
+            if (uploadItems.length > 0) {
+                uploadWrap.innerHTML = `
+                    <div class="bg-blue-50 p-3 rounded-xl space-y-2">
+                        <p class="text-xs font-semibold text-blue-700"><i class="fa-solid fa-file-arrow-up mr-1"></i> Unggah File untuk Dicetak</p>
+                        ${uploadItems.map(i => `
+                            <div>
+                                <label class="block text-[11px] text-gray-600 mb-1">${i.name}</label>
+                                <input type="file" data-cart-idx="${i.idx}" class="upload-input w-full text-[11px] bg-white border rounded-lg p-1.5" onchange="handleFileSelect(event)">
+                                <p class="text-[10px] mt-0.5" data-status-idx="${i.idx}">Belum ada file dipilih.</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else {
+                uploadWrap.innerHTML = '';
+            }
+
+            // Render kolom catatan konsumen untuk item Desain Banner / Logo
+            const noteItems = cart.map((i, idx) => ({ ...i, idx })).filter(i => NOTE_CATEGORIES.includes(i.category));
+            const notesWrap = document.getElementById('checkout-notes');
+            if (noteItems.length > 0) {
+                notesWrap.innerHTML = `
+                    <div class="bg-amber-50 p-3 rounded-xl space-y-2">
+                        <p class="text-xs font-semibold text-amber-700"><i class="fa-solid fa-note-sticky mr-1"></i> Catatan Desain</p>
+                        ${noteItems.map(i => `
+                            <div>
+                                <label class="block text-[11px] text-gray-600 mb-1">${i.name}</label>
+                                <textarea data-cart-idx="${i.idx}" rows="2" class="note-input w-full text-[11px] bg-white border rounded-lg p-1.5" placeholder="Contoh: warna dominan biru, sertakan logo perusahaan, ukuran 3x1 meter" onchange="handleNoteInput(event)">${pendingNotes[i.idx] || ''}</textarea>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else {
+                notesWrap.innerHTML = '';
+            }
+
+            // Tampilkan form biodata kalau ada item kategori Undangan
+            const hasUndangan = cart.some(i => i.category === 'Undangan');
+            document.getElementById('checkout-biodata').classList.toggle('hidden', !hasUndangan);
+
+            closeCart();
+            document.getElementById('checkout-modal').classList.remove('hidden');
+        }
+
+        function closeCheckout() {
+            document.getElementById('checkout-modal').classList.add('hidden');
+        }
+
+        // Simpan catatan konsumen per index item keranjang (mis. detail desain banner/logo)
+        const pendingNotes = {};
+        function handleNoteInput(e) {
+            const idx = e.target.dataset.cartIdx;
+            const value = e.target.value.trim();
+            if (value) pendingNotes[idx] = value;
+            else delete pendingNotes[idx];
+        }
+
+        // Simpan file yang dipilih per index item keranjang, diunggah nanti saat submit
+        const pendingFiles = {};
+        function handleFileSelect(e) {
+            const idx = e.target.dataset.cartIdx;
+            const file = e.target.files[0];
+            const statusEl = document.querySelector(`[data-status-idx="${idx}"]`);
+            if (file) {
+                pendingFiles[idx] = file;
+                statusEl.innerText = `Terpilih: ${file.name}`;
+                statusEl.classList.add('text-green-600');
+            } else {
+                delete pendingFiles[idx];
+                statusEl.innerText = 'Belum ada file dipilih.';
+                statusEl.classList.remove('text-green-600');
+            }
+        }
+
+        async function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            const res = await fetch('/api/upload', { method: 'POST', body: formData });
+            const result = await res.json();
+            if (!res.ok || !result.success) throw new Error(result.error || 'Gagal mengunggah file');
+            return result;
+        }
+
+        async function submitOrder() {
+            const cart = getCart();
+            const buyer_name = document.getElementById('buyer-name').value.trim();
+            const buyer_wa = document.getElementById('buyer-wa').value.trim();
+            const payment_method = document.getElementById('payment-method').value;
+            const btn = document.getElementById('submit-order-btn');
+
+            if (cart.length === 0) {
+                alert('Keranjang kosong.');
+                return;
+            }
+            if (!buyer_name || !buyer_wa) {
+                alert('Mohon isi nama dan nomor WhatsApp!');
+                return;
+            }
+
+            // Pastikan semua item yang butuh file sudah dipilih filenya
+            const uploadItems = cart.map((i, idx) => ({ ...i, idx })).filter(i => UPLOAD_CATEGORIES.includes(i.category));
+            const missing = uploadItems.find(i => !pendingFiles[i.idx]);
+            if (missing) {
+                alert(`Mohon pilih file untuk "${missing.name}" terlebih dahulu.`);
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = 'Mengunggah file & memproses...';
+
+            try {
+                // Unggah semua file terlebih dahulu, tempelkan URL-nya ke item keranjang terkait
+                const cartWithFiles = [...cart];
+                for (const idx of Object.keys(pendingFiles)) {
+                    const uploaded = await uploadFile(pendingFiles[idx]);
+                    cartWithFiles[idx] = { ...cartWithFiles[idx], file_url: uploaded.file_url, file_name: uploaded.file_name };
+                }
+                // Tempelkan catatan konsumen (mis. detail desain banner/logo) ke item terkait
+                for (const idx of Object.keys(pendingNotes)) {
+                    cartWithFiles[idx] = { ...cartWithFiles[idx], note: pendingNotes[idx] };
+                }
+
+                const hasUndangan = cart.some(i => i.category === 'Undangan');
+                const biodata = hasUndangan ? {
+                    nama_acara: document.getElementById('biodata-nama-acara').value.trim(),
+                    tanggal_acara: document.getElementById('biodata-tanggal').value,
+                    lokasi_acara: document.getElementById('biodata-lokasi').value.trim(),
+                    catatan: document.getElementById('biodata-catatan').value.trim()
+                } : {};
+
+                const res = await fetch('/api/orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ buyer_name, buyer_wa, payment_method, items: cartWithFiles, biodata })
+                });
+                const result = await res.json();
+
+                if (!res.ok || !result.success) {
+                    throw new Error(result.error || 'Gagal membuat pesanan');
+                }
+
+                const order = result.order;
+
+                // Kosongkan keranjang setelah berhasil
+                saveCart([]);
+                for (const k of Object.keys(pendingFiles)) delete pendingFiles[k];
+                for (const k of Object.keys(pendingNotes)) delete pendingNotes[k];
+                closeCheckout();
+
+                // Susun pesan broadcast WhatsApp: rincian pesanan + biodata (jika Undangan) + opsi pembayaran
+                const notaUrl = `${window.location.origin}/nota.html?id=${order.id}`;
+                const itemLines = order.items.map(i => {
+                    let line = `- ${i.qty}x ${i.name} (${formatRupiah(i.subtotal)})`;
+                    if (i.file_url) line += ` [File: ${i.file_url}]`;
+                    if (i.note) line += `%0A  Catatan: ${encodeURIComponent(i.note)}`;
+                    return line;
+                }).join('%0A');
+
+                let biodataLines = '';
+                if (hasUndangan) {
+                    biodataLines = `%0A%0ABiodata Undangan:%0ANama Acara: ${encodeURIComponent(biodata.nama_acara || '-')}%0ATanggal: ${encodeURIComponent(biodata.tanggal_acara || '-')}%0ALokasi: ${encodeURIComponent(biodata.lokasi_acara || '-')}%0ACatatan: ${encodeURIComponent(biodata.catatan || '-')}`;
+                }
+
+                const paymentOptionsLines = allPaymentMethods.length > 0
+                    ? '%0A%0AOpsi Pembayaran Tersedia:%0A' + allPaymentMethods.map(m => `- ${encodeURIComponent(m.label)}${m.detail ? ` (${encodeURIComponent(m.detail)})` : ''}`).join('%0A')
+                    : '';
+
+                const waText = `Halo Admin, saya ingin konfirmasi pesanan berikut:%0A%0ANo. Pesanan: ${order.order_code}%0A${itemLines}%0A%0ATotal: ${formatRupiah(order.total_amount)}%0AMetode Bayar Dipilih: ${encodeURIComponent(payment_method)}%0AAtas nama: ${encodeURIComponent(buyer_name)}${biodataLines}${paymentOptionsLines}%0A%0ALihat nota: ${notaUrl}`;
+                window.open(`https://wa.me/${ADMIN_WA_NUMBER}?text=${waText}`, '_blank');
+
+                // Arahkan pembeli ke halaman nota untuk dicetak/disimpan
+                window.location.href = `nota.html?id=${order.id}`;
+            } catch (err) {
+                alert('Gagal membuat pesanan: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Konfirmasi & Pesan via WhatsApp';
+            }
+        }
+
+        loadProducts();
+        loadBanners();
+        loadPaymentMethods();
+        renderCartBadge();
+    </script>
+</body>
+</html>
