@@ -1,4 +1,3 @@
- HEAD
 # Dependencies
 node_modules/
 
@@ -24,7 +23,7 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
-=======
+
 # Logs
 logs
 *.log
