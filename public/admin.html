@@ -537,22 +537,25 @@
                     const orderStatus = o.order_status || 'Diproses';
 
                     return `
-                    <tr>
+                    <tr class="align-top">
                         <td class="p-2 font-medium">${o.order_code}</td>
                         <td class="p-2">${o.buyer_name}<br><span class="text-gray-400">${o.buyer_wa}</span></td>
                         <td class="p-2 text-orange-600 font-bold">${formatRupiah(o.total_amount)}</td>
-                        <td class="p-2">${fileLinks || '-'}${biodata}${designNotes}</td>
                         <td class="p-2">
-                            <select onchange="updateOrderStatus('${o.id}', 'payment_status', this.value)" class="border rounded p-1 text-[11px]">
+                            <div class="max-h-16 overflow-y-auto pr-1">${fileLinks || '-'}${biodata}${designNotes}</div>
+                        </td>
+                        <td class="p-2">
+                            <select id="payment-status-${o.id}" class="border rounded p-1 text-[11px] w-full">
                                 ${paymentStatuses.map(s => `<option value="${s}" ${s === paymentStatus ? 'selected' : ''}>${s}</option>`).join('')}
                             </select>
                         </td>
                         <td class="p-2">
-                            <select onchange="updateOrderStatus('${o.id}', 'order_status', this.value)" class="border rounded p-1 text-[11px]">
+                            <select id="order-status-${o.id}" class="border rounded p-1 text-[11px] w-full">
                                 ${orderStatuses.map(s => `<option value="${s}" ${s === orderStatus ? 'selected' : ''}>${s}</option>`).join('')}
                             </select>
                         </td>
                         <td class="p-2 text-center space-y-1">
+                            <button id="save-status-${o.id}" onclick="saveOrderStatus('${o.id}')" class="bg-blue-50 text-blue-600 px-2 py-1 rounded font-medium hover:bg-blue-100 block w-full"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>
                             <a href="${toWaLink(o.buyer_wa)}" target="_blank" class="bg-green-50 text-green-600 px-2 py-1 rounded font-medium hover:bg-green-100 block"><i class="fa-brands fa-whatsapp"></i> Hubungi</a>
                             <a href="nota.html?id=${o.id}" target="_blank" class="bg-orange-50 text-orange-600 px-2 py-1 rounded font-medium hover:bg-orange-100 block"><i class="fa-solid fa-file-invoice"></i> Nota</a>
                         </td>
@@ -564,17 +567,27 @@
             }
         }
 
-        async function updateOrderStatus(id, field, value) {
+        // Simpan Status Pembayaran & Status Pesanan sekaligus ke database saat tombol "Simpan" diklik.
+        async function saveOrderStatus(id) {
+            const btn = document.getElementById(`save-status-${id}`);
+            const payment_status = document.getElementById(`payment-status-${id}`).value;
+            const order_status = document.getElementById(`order-status-${id}`).value;
+            const oldHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...';
             try {
                 const res = await fetch(`/api/orders/${id}/status`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json', ...authHeaders() },
-                    body: JSON.stringify({ [field]: value })
+                    body: JSON.stringify({ payment_status, order_status })
                 });
                 if (!res.ok) throw new Error();
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Tersimpan';
+                setTimeout(() => { btn.innerHTML = oldHtml; btn.disabled = false; }, 1200);
             } catch (err) {
-                alert('Gagal memperbarui status pesanan.');
-                fetchOrders();
+                alert('Gagal menyimpan status pesanan. Coba lagi.');
+                btn.innerHTML = oldHtml;
+                btn.disabled = false;
             }
         }
 

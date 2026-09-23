@@ -67,11 +67,6 @@
                     <span id="n-total" class="font-bold text-orange-600 text-base">Rp 0</span>
                 </div>
 
-                <div id="n-files-wrap" class="hidden border-t border-dashed pt-3 text-xs space-y-1">
-                    <p class="text-gray-500 font-medium">File yang Diunggah</p>
-                    <div id="n-files"></div>
-                </div>
-
                 <div id="n-biodata-wrap" class="hidden border-t border-dashed pt-3 text-xs space-y-1">
                     <p class="text-gray-500 font-medium">Biodata Undangan</p>
                     <div id="n-biodata"></div>
@@ -128,7 +123,7 @@
             document.getElementById('n-date').innerText = new Date(order.created_at).toLocaleString('id-ID', {
                 dateStyle: 'medium', timeStyle: 'short'
             });
-            document.getElementById('n-status').innerText = order.status;
+            document.getElementById('n-status').innerText = order.payment_status || order.status || 'Menunggu Pembayaran';
             document.getElementById('n-buyer').innerText = order.buyer_name;
             document.getElementById('n-wa').innerText = order.buyer_wa;
             document.getElementById('n-payment').innerText = order.payment_method;
@@ -142,14 +137,6 @@
                     <td class="py-1.5 text-right">${formatRupiah(i.subtotal)}</td>
                 </tr>
             `).join('');
-
-            const filesItems = items.filter(i => i.file_url);
-            if (filesItems.length > 0) {
-                document.getElementById('n-files-wrap').classList.remove('hidden');
-                document.getElementById('n-files').innerHTML = filesItems.map(i =>
-                    `<a href="${i.file_url}" target="_blank" class="block text-blue-500 underline">${i.name}: ${i.file_name || 'Lihat File'}</a>`
-                ).join('');
-            }
 
             const noteItems = items.filter(i => i.note);
             if (noteItems.length > 0) {
