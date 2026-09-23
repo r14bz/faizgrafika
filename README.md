@@ -29,6 +29,7 @@ Paket lengkap fullstack website percetakan dan desain grafis, siap di-deploy ke 
 │   └── nota.html         -> Struk pembayaran (dicetak per pesanan, termasuk file & biodata)
 ├── database.sql         -> Skema awal tabel `products` & `orders` (v1)
 ├── migration_v2.sql      -> Migrasi tambahan v2 (reviews, banners, payment_methods, dst.)
+├── migration_v3.sql      -> Migrasi v3 (multi-foto produk, status pembayaran & status pesanan terpisah)
 ├── vercel.json           -> Konfigurasi routing untuk deploy Vercel
 ├── .env.example          -> Contoh semua environment variable yang dibutuhkan
 └── .env                  -> Kredensial asli Anda (JANGAN di-commit ke git publik)

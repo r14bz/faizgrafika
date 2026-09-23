@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/fontawesome.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/solid.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/brands.min.css">
     <style>
         body { background-color: #f3f4f6; }
         .brand-font { font-family: 'Cinzel', serif; letter-spacing: 0.03em; }
@@ -24,7 +25,7 @@
 
     <div id="dashboard" class="hidden">
         <header class="bg-gray-900 text-white shadow">
-            <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
                 <div class="flex items-center space-x-2">
                     <i class="fa-solid fa-gauge text-orange-400"></i>
                     <span class="brand-font font-bold text-sm">FAIZGRAFIKA ADMIN</span>
@@ -37,7 +38,7 @@
         </header>
 
         <!-- Navigasi Tab -->
-        <div class="max-w-4xl mx-auto px-4 pt-4">
+        <div class="max-w-6xl mx-auto px-4 pt-4">
             <div class="bg-white p-1.5 rounded-xl shadow-sm border flex gap-1 text-xs font-semibold overflow-x-auto">
                 <button class="tab-btn active px-3 py-2 rounded-lg whitespace-nowrap" data-tab="tab-products" onclick="showTab('tab-products')">Produk & Promo</button>
                 <button class="tab-btn px-3 py-2 rounded-lg whitespace-nowrap" data-tab="tab-orders" onclick="showTab('tab-orders')">Pesanan Masuk</button>
@@ -46,7 +47,7 @@
             </div>
         </div>
 
-        <main class="max-w-4xl mx-auto p-4 space-y-6">
+        <main class="max-w-6xl mx-auto p-4 space-y-6">
 
             <!-- ================= TAB: PRODUK & PROMO ================= -->
             <div id="tab-products" class="space-y-6">
@@ -77,8 +78,10 @@
                         </div>
                     </div>
                     <div>
-                        <label class="block font-medium text-gray-600 mb-1 text-xs">URL Gambar Produk (Opsional / Link Gambar)</label>
-                        <input type="text" id="input-image" placeholder="https://example.com/gambar.jpg" class="w-full border rounded-lg p-2 text-xs">
+                        <label class="block font-medium text-gray-600 mb-1 text-xs">Foto Produk (bisa pilih beberapa sekaligus)</label>
+                        <input type="file" id="input-image-files" accept="image/*" multiple class="w-full border rounded-lg p-2 text-xs bg-white" onchange="handleProductImageUpload(event)">
+                        <p id="input-image-status" class="text-[10px] text-gray-400 mt-1">Belum ada foto diunggah.</p>
+                        <div id="input-image-preview" class="flex flex-wrap gap-2 mt-2"></div>
                     </div>
                     <div>
                         <label class="block font-medium text-gray-600 mb-1 text-xs">Deskripsi Lengkap Produk</label>
@@ -126,12 +129,13 @@
                                     <th class="p-2">Pemesan</th>
                                     <th class="p-2">Total</th>
                                     <th class="p-2">File / Biodata</th>
-                                    <th class="p-2">Status</th>
-                                    <th class="p-2 text-center">Nota</th>
+                                    <th class="p-2">Status Pembayaran</th>
+                                    <th class="p-2">Status Pesanan</th>
+                                    <th class="p-2 text-center">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody id="admin-order-list" class="divide-y">
-                                <tr><td colspan="6" class="p-4 text-center text-gray-400">Memuat data...</td></tr>
+                                <tr><td colspan="7" class="p-4 text-center text-gray-400">Memuat data...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -143,9 +147,12 @@
                 <div class="bg-white p-4 rounded-xl shadow-sm border space-y-4">
                     <h3 class="font-bold text-sm text-gray-700 border-b pb-2"><i class="fa-solid fa-image text-orange-500 mr-1"></i> Tambah Banner Promo Beranda</h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                        <div>
-                            <label class="block font-medium text-gray-600 mb-1">URL Gambar Banner</label>
-                            <input type="text" id="banner-image" placeholder="https://example.com/banner.jpg" class="w-full border rounded-lg p-2">
+                        <div class="sm:col-span-2">
+                            <label class="block font-medium text-gray-600 mb-1">Upload Gambar Banner</label>
+                            <input type="file" id="banner-image-file" accept="image/*" class="w-full border rounded-lg p-2 bg-white" onchange="handleBannerImageUpload(event)">
+                            <p id="banner-image-status" class="text-[10px] text-gray-400 mt-1">Belum ada gambar diunggah.</p>
+                            <input type="hidden" id="banner-image">
+                            <img id="banner-image-preview" class="hidden mt-2 h-16 rounded border object-cover">
                         </div>
                         <div>
                             <label class="block font-medium text-gray-600 mb-1">Link Tujuan (opsional)</label>
@@ -195,6 +202,51 @@
         </main>
     </div>
 
+    <!-- Modal Edit Produk -->
+    <div id="edit-product-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-lg rounded-xl p-4 space-y-3 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="font-bold text-sm text-gray-800"><i class="fa-solid fa-pen text-orange-500 mr-1"></i> Edit Produk</h3>
+                <button onclick="closeEditProduct()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <input type="hidden" id="edit-id">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div>
+                    <label class="block font-medium text-gray-600 mb-1">Nama Produk / Layanan</label>
+                    <input type="text" id="edit-name" class="w-full border rounded-lg p-2">
+                </div>
+                <div>
+                    <label class="block font-medium text-gray-600 mb-1">Kategori</label>
+                    <select id="edit-category" class="w-full border rounded-lg p-2 bg-white">
+                        <option>Undangan</option>
+                        <option>Cetak Dokumen</option>
+                        <option>Fotocopy</option>
+                        <option>Desain Banner / Logo</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-medium text-gray-600 mb-1">Harga (Rp)</label>
+                    <input type="number" id="edit-price" class="w-full border rounded-lg p-2">
+                </div>
+                <div>
+                    <label class="block font-medium text-gray-600 mb-1">Stok / Kapasitas</label>
+                    <input type="text" id="edit-stock" class="w-full border rounded-lg p-2">
+                </div>
+            </div>
+            <div>
+                <label class="block font-medium text-gray-600 mb-1 text-xs">Tambah Foto Produk</label>
+                <input type="file" id="edit-image-files" accept="image/*" multiple class="w-full border rounded-lg p-2 text-xs bg-white" onchange="handleEditImageUpload(event)">
+                <p id="edit-image-status" class="text-[10px] text-gray-400 mt-1">Foto yang sudah ada:</p>
+                <div id="edit-image-preview" class="flex flex-wrap gap-2 mt-2"></div>
+            </div>
+            <div>
+                <label class="block font-medium text-gray-600 mb-1 text-xs">Deskripsi Lengkap Produk</label>
+                <textarea id="edit-description" rows="3" class="w-full border rounded-lg p-2 text-xs"></textarea>
+            </div>
+            <button onclick="saveEditProduct()" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 py-2 rounded-lg text-xs transition">Simpan Perubahan</button>
+        </div>
+    </div>
+
     <script>
         const TOKEN_KEY = 'fg_admin_token';
         const token = localStorage.getItem(TOKEN_KEY);
@@ -232,20 +284,74 @@
             return 'Rp ' + Number(n || 0).toLocaleString('id-ID');
         }
 
+        // Format nomor WA ke format internasional (62xxxx) untuk link wa.me
+        function toWaLink(number) {
+            let n = String(number || '').replace(/[^0-9]/g, '');
+            if (n.startsWith('0')) n = '62' + n.slice(1);
+            if (!n.startsWith('62')) n = '62' + n;
+            return `https://wa.me/${n}`;
+        }
+
+        // Upload 1 file ke server, kembalikan URL publiknya (dipakai form produk & banner)
+        async function uploadImageFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            const res = await fetch('/api/upload', { method: 'POST', body: formData });
+            const result = await res.json();
+            if (!res.ok || !result.success) throw new Error(result.error || 'Gagal mengunggah gambar');
+            return result.file_url;
+        }
+
+        function renderImageChips(containerId, urls, onRemove) {
+            const wrap = document.getElementById(containerId);
+            wrap.innerHTML = urls.map((url, i) => `
+                <div class="relative">
+                    <img src="${url}" class="w-14 h-14 object-cover rounded border">
+                    <button type="button" onclick="${onRemove}(${i})" class="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-4 h-4 text-[9px] flex items-center justify-center">✕</button>
+                </div>
+            `).join('');
+        }
+
         // ============== PRODUK & PROMO ==============
+        let newProductImages = [];
+
+        async function handleProductImageUpload(e) {
+            const files = Array.from(e.target.files || []);
+            if (files.length === 0) return;
+            const statusEl = document.getElementById('input-image-status');
+            statusEl.innerText = `Mengunggah ${files.length} foto...`;
+            try {
+                for (const file of files) {
+                    const url = await uploadImageFile(file);
+                    newProductImages.push(url);
+                }
+                statusEl.innerText = `${newProductImages.length} foto siap diunggah.`;
+                renderImageChips('input-image-preview', newProductImages, 'removeNewProductImage');
+            } catch (err) {
+                statusEl.innerText = 'Gagal mengunggah salah satu foto: ' + err.message;
+            } finally {
+                e.target.value = '';
+            }
+        }
+
+        function removeNewProductImage(i) {
+            newProductImages.splice(i, 1);
+            renderImageChips('input-image-preview', newProductImages, 'removeNewProductImage');
+        }
+
         async function fetchAdminProducts() {
             try {
-                const res = await fetch('/api/products');
+                const res = await fetch('/api/admin/products', { headers: authHeaders() });
                 const products = await res.json();
                 const tbody = document.getElementById('admin-product-list');
 
-                if (products.length === 0) {
+                if (!Array.isArray(products) || products.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-400">Belum ada produk.</td></tr>';
                     return;
                 }
 
                 tbody.innerHTML = products.map(p => `
-                    <tr>
+                    <tr data-id="${p.id}">
                         <td class="p-2 font-medium">${p.name}</td>
                         <td class="p-2">${p.category}</td>
                         <td class="p-2">Rp ${Number(p.price).toLocaleString('id-ID')}</td>
@@ -256,7 +362,8 @@
                             <input type="checkbox" ${p.discount_active ? 'checked' : ''} id="discount-active-${p.id}" class="w-4 h-4">
                         </td>
                         <td class="p-2 text-center space-x-1 whitespace-nowrap">
-                            <button onclick="savePromo('${p.id}')" class="bg-green-50 text-green-600 px-2 py-1 rounded font-medium hover:bg-green-100"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>
+                            <button onclick="savePromo('${p.id}')" class="bg-green-50 text-green-600 px-2 py-1 rounded font-medium hover:bg-green-100"><i class="fa-solid fa-floppy-disk"></i></button>
+                            <button onclick='openEditProduct(${JSON.stringify(p)})' class="bg-blue-50 text-blue-600 px-2 py-1 rounded font-medium hover:bg-blue-100"><i class="fa-solid fa-pen"></i></button>
                             <button onclick="deleteProduct('${p.id}')" class="bg-red-50 text-red-600 px-2 py-1 rounded font-medium hover:bg-red-100"><i class="fa-solid fa-trash"></i></button>
                         </td>
                     </tr>
@@ -271,7 +378,6 @@
             const category = document.getElementById('input-category').value;
             const price = document.getElementById('input-price').value;
             const stock = document.getElementById('input-stock').value;
-            const image_url = document.getElementById('input-image').value;
             const description = document.getElementById('input-description').value;
 
             if (!name || !price || !stock) {
@@ -282,7 +388,7 @@
             const res = await fetch('/api/products', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', ...authHeaders() },
-                body: JSON.stringify({ name, category, price: Number(price), stock, image_url, description })
+                body: JSON.stringify({ name, category, price: Number(price), stock, image_urls: newProductImages, description })
             });
 
             if (res.ok) {
@@ -290,12 +396,81 @@
                 document.getElementById('input-name').value = '';
                 document.getElementById('input-price').value = '';
                 document.getElementById('input-stock').value = '';
-                document.getElementById('input-image').value = '';
                 document.getElementById('input-description').value = '';
+                document.getElementById('input-image-status').innerText = 'Belum ada foto diunggah.';
+                newProductImages = [];
+                renderImageChips('input-image-preview', [], 'removeNewProductImage');
                 fetchAdminProducts();
             } else {
                 const err = await res.json().catch(() => ({}));
                 alert('Gagal menyimpan produk: ' + (err.error || ''));
+            }
+        }
+
+        // ============== EDIT PRODUK ==============
+        let editProductImages = [];
+
+        function openEditProduct(p) {
+            document.getElementById('edit-id').value = p.id;
+            document.getElementById('edit-name').value = p.name;
+            document.getElementById('edit-category').value = p.category;
+            document.getElementById('edit-price').value = p.price;
+            document.getElementById('edit-stock').value = p.stock;
+            document.getElementById('edit-description').value = p.description || '';
+            editProductImages = Array.isArray(p.image_urls) && p.image_urls.length > 0 ? [...p.image_urls] : (p.image_url ? [p.image_url] : []);
+            renderImageChips('edit-image-preview', editProductImages, 'removeEditProductImage');
+            document.getElementById('edit-product-modal').classList.remove('hidden');
+        }
+
+        function closeEditProduct() {
+            document.getElementById('edit-product-modal').classList.add('hidden');
+        }
+
+        function removeEditProductImage(i) {
+            editProductImages.splice(i, 1);
+            renderImageChips('edit-image-preview', editProductImages, 'removeEditProductImage');
+        }
+
+        async function handleEditImageUpload(e) {
+            const files = Array.from(e.target.files || []);
+            if (files.length === 0) return;
+            const statusEl = document.getElementById('edit-image-status');
+            statusEl.innerText = `Mengunggah ${files.length} foto...`;
+            try {
+                for (const file of files) {
+                    const url = await uploadImageFile(file);
+                    editProductImages.push(url);
+                }
+                statusEl.innerText = 'Foto yang sudah ada:';
+                renderImageChips('edit-image-preview', editProductImages, 'removeEditProductImage');
+            } catch (err) {
+                statusEl.innerText = 'Gagal mengunggah salah satu foto: ' + err.message;
+            } finally {
+                e.target.value = '';
+            }
+        }
+
+        async function saveEditProduct() {
+            const id = document.getElementById('edit-id').value;
+            const payload = {
+                name: document.getElementById('edit-name').value,
+                category: document.getElementById('edit-category').value,
+                price: Number(document.getElementById('edit-price').value),
+                stock: document.getElementById('edit-stock').value,
+                description: document.getElementById('edit-description').value,
+                image_urls: editProductImages,
+                image_url: editProductImages[0] || null
+            };
+            const res = await fetch(`/api/products/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', ...authHeaders() },
+                body: JSON.stringify(payload)
+            });
+            if (res.ok) {
+                closeEditProduct();
+                fetchAdminProducts();
+            } else {
+                alert('Gagal menyimpan perubahan produk.');
             }
         }
 
@@ -318,30 +493,33 @@
         }
 
         async function deleteProduct(id) {
-            if (confirm('Yakin ingin menghapus produk ini?')) {
-                const res = await fetch(`/api/products/${id}`, { method: 'DELETE', headers: authHeaders() });
-                if (res.ok) {
-                    fetchAdminProducts();
-                } else {
-                    alert('Gagal menghapus produk.');
-                }
+            if (!confirm('Yakin ingin menghapus produk ini?')) return;
+            const row = document.querySelector(`tr[data-id="${id}"]`);
+            if (row) row.style.opacity = '0.4'; // feedback instan sambil menunggu server
+            const res = await fetch(`/api/products/${id}`, { method: 'DELETE', headers: authHeaders() });
+            if (res.ok) {
+                if (row) row.remove(); // langsung hilang dari tabel, tidak perlu refetch/refresh
+            } else {
+                if (row) row.style.opacity = '1';
+                alert('Gagal menghapus produk.');
             }
         }
 
         // ============== PESANAN ==============
         async function fetchOrders() {
             const tbody = document.getElementById('admin-order-list');
-            tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-400">Memuat data...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-gray-400">Memuat data...</td></tr>';
             try {
                 const res = await fetch('/api/orders', { headers: authHeaders() });
                 const orders = await res.json();
 
                 if (!Array.isArray(orders) || orders.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-400">Belum ada pesanan masuk.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-gray-400">Belum ada pesanan masuk.</td></tr>';
                     return;
                 }
 
-                const statuses = ['Menunggu Pembayaran', 'Lunas', 'Diproses', 'Selesai', 'Dibatalkan'];
+                const paymentStatuses = ['Menunggu Pembayaran', 'Lunas', 'COD (Cash On Delivery)'];
+                const orderStatuses = ['Diproses', 'Selesai', 'Dibatalkan'];
 
                 tbody.innerHTML = orders.map(o => {
                     const fileLinks = (o.items || [])
@@ -355,6 +533,8 @@
                         .filter(i => i.note)
                         .map(i => `<div class="text-[10px] text-amber-700 mt-1"><b>${i.name}:</b> ${i.note}</div>`)
                         .join('');
+                    const paymentStatus = o.payment_status || 'Menunggu Pembayaran';
+                    const orderStatus = o.order_status || 'Diproses';
 
                     return `
                     <tr>
@@ -363,27 +543,33 @@
                         <td class="p-2 text-orange-600 font-bold">${formatRupiah(o.total_amount)}</td>
                         <td class="p-2">${fileLinks || '-'}${biodata}${designNotes}</td>
                         <td class="p-2">
-                            <select onchange="updateOrderStatus('${o.id}', this.value)" class="border rounded p-1 text-[11px]">
-                                ${statuses.map(s => `<option value="${s}" ${s === o.status ? 'selected' : ''}>${s}</option>`).join('')}
+                            <select onchange="updateOrderStatus('${o.id}', 'payment_status', this.value)" class="border rounded p-1 text-[11px]">
+                                ${paymentStatuses.map(s => `<option value="${s}" ${s === paymentStatus ? 'selected' : ''}>${s}</option>`).join('')}
                             </select>
                         </td>
-                        <td class="p-2 text-center">
-                            <a href="nota.html?id=${o.id}" target="_blank" class="bg-orange-50 text-orange-600 px-2 py-1 rounded font-medium hover:bg-orange-100"><i class="fa-solid fa-file-invoice"></i> Lihat</a>
+                        <td class="p-2">
+                            <select onchange="updateOrderStatus('${o.id}', 'order_status', this.value)" class="border rounded p-1 text-[11px]">
+                                ${orderStatuses.map(s => `<option value="${s}" ${s === orderStatus ? 'selected' : ''}>${s}</option>`).join('')}
+                            </select>
+                        </td>
+                        <td class="p-2 text-center space-y-1">
+                            <a href="${toWaLink(o.buyer_wa)}" target="_blank" class="bg-green-50 text-green-600 px-2 py-1 rounded font-medium hover:bg-green-100 block"><i class="fa-brands fa-whatsapp"></i> Hubungi</a>
+                            <a href="nota.html?id=${o.id}" target="_blank" class="bg-orange-50 text-orange-600 px-2 py-1 rounded font-medium hover:bg-orange-100 block"><i class="fa-solid fa-file-invoice"></i> Nota</a>
                         </td>
                     </tr>
                 `;
                 }).join('');
             } catch (e) {
-                tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-red-500">Gagal memuat pesanan.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-red-500">Gagal memuat pesanan.</td></tr>';
             }
         }
 
-        async function updateOrderStatus(id, status) {
+        async function updateOrderStatus(id, field, value) {
             try {
                 const res = await fetch(`/api/orders/${id}/status`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json', ...authHeaders() },
-                    body: JSON.stringify({ status })
+                    body: JSON.stringify({ [field]: value })
                 });
                 if (!res.ok) throw new Error();
             } catch (err) {
@@ -421,6 +607,23 @@
             }
         }
 
+        async function handleBannerImageUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const statusEl = document.getElementById('banner-image-status');
+            statusEl.innerText = 'Mengunggah gambar...';
+            try {
+                const url = await uploadImageFile(file);
+                document.getElementById('banner-image').value = url;
+                statusEl.innerText = 'Gambar siap diunggah.';
+                const preview = document.getElementById('banner-image-preview');
+                preview.src = url;
+                preview.classList.remove('hidden');
+            } catch (err) {
+                statusEl.innerText = 'Gagal mengunggah: ' + err.message;
+            }
+        }
+
         async function addBanner() {
             const image_url = document.getElementById('banner-image').value.trim();
             const link_url = document.getElementById('banner-link').value.trim();
@@ -440,6 +643,8 @@
                 document.getElementById('banner-link').value = '';
                 document.getElementById('banner-title').value = '';
                 document.getElementById('banner-order').value = '';
+                document.getElementById('banner-image-status').innerText = 'Belum ada gambar diunggah.';
+                document.getElementById('banner-image-preview').classList.add('hidden');
                 fetchBanners();
             } else {
                 alert('Gagal menyimpan banner.');
