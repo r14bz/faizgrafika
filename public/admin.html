@@ -7,8 +7,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/fontawesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/solid.min.css">
     <style>
         body { background-color: #f3f4f6; }
         .brand-font { font-family: 'Cinzel', serif; letter-spacing: 0.03em; }
@@ -404,7 +405,7 @@
                 }
                 wrap.innerHTML = banners.map(b => `
                     <div class="flex items-center gap-3 border rounded-lg p-2">
-                        <img src="${b.image_url}" class="w-20 h-12 object-cover rounded bg-gray-100">
+                        <img src="${b.image_url}" class="w-20 h-12 object-cover rounded bg-gray-100" loading="lazy" decoding="async">
                         <div class="flex-1 text-xs">
                             <p class="font-medium">${b.title || '(tanpa judul)'}</p>
                             <p class="text-gray-400 truncate">${b.image_url}</p>
