@@ -21,13 +21,13 @@
 <body class="text-gray-800 pb-24">
 
     <header class="bg-white shadow-sm sticky top-0 z-50">
-        <div class="max-w-md lg:max-w-3xl mx-auto px-4 py-3 flex items-center space-x-3">
-            <a href="index.html" class="text-gray-500 hover:text-orange-500"><i class="fa-solid fa-arrow-left"></i></a>
-            <span class="brand-font font-bold text-sm text-gray-900">FAIZGRAFIKA</span>
+        <div class="max-w-md lg:max-w-5xl mx-auto px-4 lg:px-8 py-3 lg:py-5 flex items-center space-x-3">
+            <a href="index.html" class="text-gray-500 hover:text-orange-500 lg:text-lg"><i class="fa-solid fa-arrow-left"></i></a>
+            <span class="brand-font font-bold text-sm lg:text-xl text-gray-900">FAIZGRAFIKA</span>
         </div>
     </header>
 
-    <main class="max-w-md lg:max-w-3xl mx-auto p-4 space-y-4">
+    <main class="max-w-md lg:max-w-5xl mx-auto p-4 lg:px-8 lg:py-6 space-y-4">
         <div id="loading-state" class="text-center text-xs text-gray-400 py-16">Memuat detail produk...</div>
         <div id="error-state" class="hidden text-center text-xs text-red-500 py-16">Produk tidak ditemukan.</div>
 
@@ -55,6 +55,16 @@
                         <span id="p-discount-badge" class="hidden bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">PROMO</span>
                     </div>
                     <p class="text-xs text-gray-400">Stok: <span id="p-stock"></span></p>
+
+                    <!-- Di desktop, tombol aksi ditampilkan langsung di sini (bukan melayang di footer) supaya selalu terlihat -->
+                    <div class="hidden lg:flex gap-2 pt-2">
+                        <button onclick="buyNowFromDetail()" class="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-bold py-3 rounded-xl text-sm transition">
+                            Beli Sekarang
+                        </button>
+                        <button onclick="addToCartFromDetail(event)" class="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl text-sm transition">
+                            <i class="fa-solid fa-cart-plus mr-1"></i> Keranjang
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -100,8 +110,8 @@
         </div>
     </main>
 
-    <!-- Tombol Aksi Melayang -->
-    <div id="bottom-bar" class="hidden fixed bottom-0 left-0 right-0 bg-white border-t p-3 z-40">
+    <!-- Tombol Aksi Melayang (khusus mobile; di desktop tombol sudah ditampilkan inline di kartu produk) -->
+    <div id="bottom-bar" class="hidden lg:!hidden fixed bottom-0 left-0 right-0 bg-white border-t p-3 z-40">
         <div class="max-w-md lg:max-w-3xl mx-auto flex gap-2">
             <button onclick="buyNowFromDetail()" class="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-bold py-3 rounded-xl text-sm transition">
                 Beli Sekarang
