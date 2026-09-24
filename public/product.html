@@ -122,6 +122,24 @@
         </div>
     </div>
 
+    <!-- Popup Jumlah Beli (muncul saat klik "Beli Sekarang", tetap di halaman ini) -->
+    <div id="buy-qty-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-xs rounded-2xl p-4 space-y-3">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-sm text-gray-800">Jumlah Pembelian</h3>
+                <button onclick="closeBuyQtyModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <p class="text-xs text-gray-500" id="p-name-in-modal"></p>
+            <input type="number" id="buy-qty-input" min="1" value="1" class="w-full border rounded-lg p-2.5 text-center text-lg font-bold">
+            <button onclick="confirmBuyQty()" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 rounded-xl text-sm transition">
+                Tambahkan ke Keranjang
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast notifikasi kecil -->
+    <div id="mini-toast" class="hidden fixed bottom-24 lg:bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs px-4 py-2.5 rounded-full shadow-lg z-50"></div>
+
     <script>
         const CART_KEY = 'faizgrafika_cart';
         let currentProduct = null;
@@ -326,27 +344,50 @@
             }
         }
 
-        function addToCartCoreDetail() {
+        function addToCartCoreDetail(qty) {
             if (!currentProduct) return null;
+            qty = Math.max(1, parseInt(qty, 10) || 1);
             const cart = JSON.parse(localStorage.getItem(CART_KEY)) || [];
             const price = effectivePrice(currentProduct);
             const existing = cart.find(i => i.name === currentProduct.name);
             if (existing) {
-                existing.qty += 1;
+                existing.qty += qty;
             } else {
-                cart.push({ name: currentProduct.name, price, qty: 1, category: currentProduct.category });
+                cart.push({ name: currentProduct.name, price, qty, category: currentProduct.category, original_price: currentProduct.price });
             }
             localStorage.setItem(CART_KEY, JSON.stringify(cart));
             return cart;
         }
 
+        // Tombol "Beli Sekarang": tampilkan popup untuk isi jumlah, TETAP di halaman detail produk (tidak pindah halaman)
         function buyNowFromDetail() {
-            addToCartCoreDetail();
-            window.location.href = 'index.html?openCart=1';
+            if (!currentProduct) return;
+            document.getElementById('p-name-in-modal').innerText = currentProduct.name;
+            document.getElementById('buy-qty-input').value = 1;
+            document.getElementById('buy-qty-modal').classList.remove('hidden');
+        }
+
+        function closeBuyQtyModal() {
+            document.getElementById('buy-qty-modal').classList.add('hidden');
+        }
+
+        function confirmBuyQty() {
+            const qty = document.getElementById('buy-qty-input').value;
+            addToCartCoreDetail(qty);
+            closeBuyQtyModal();
+            showToast(`${qty} pcs "${currentProduct.name}" ditambahkan ke keranjang.`);
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('mini-toast');
+            toast.innerText = message;
+            toast.classList.remove('hidden');
+            clearTimeout(window._toastTimer);
+            window._toastTimer = setTimeout(() => toast.classList.add('hidden'), 2500);
         }
 
         function addToCartFromDetail(e) {
-            addToCartCoreDetail();
+            addToCartCoreDetail(1);
             const btn = e.currentTarget;
             const oldHtml = btn.innerHTML;
             btn.innerHTML = '<i class="fa-solid fa-check mr-1"></i> Ditambahkan';

@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/fontawesome.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/solid.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/brands.min.css">
     <style>
         body { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); min-height: 100vh; }
         .brand-font { font-family: 'Cinzel', serif; letter-spacing: 0.03em; }
@@ -49,7 +50,10 @@
                     <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-gray-400 text-sm"></i>
                 </div>
             </div>
-            <div class="flex items-center space-x-3">
+            <div class="flex items-center space-x-3 lg:space-x-4">
+                <button onclick="openTrackOrder()" class="text-gray-600 hover:text-orange-500" title="Lacak Pesanan">
+                    <i class="fa-solid fa-magnifying-glass-location text-lg lg:text-2xl"></i>
+                </button>
                 <button onclick="openCart()" id="header-cart-btn" class="relative text-gray-600 hover:text-orange-500">
                     <i class="fa-solid fa-cart-shopping text-lg lg:text-2xl"></i>
                     <span id="cart-badge" class="hidden absolute -top-2 -right-2 bg-orange-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">0</span>
@@ -216,6 +220,31 @@
             <div class="flex gap-2 pt-1">
                 <a id="order-success-nota-link" href="#" target="_blank" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold py-2.5 rounded-xl transition">Lihat Nota</a>
                 <button onclick="closeOrderSuccess()" class="flex-1 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold py-2.5 rounded-xl transition">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Lacak Pesanan -->
+    <div id="track-modal" class="modal-overlay fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+        <div class="modal-panel bg-white w-full max-w-sm rounded-2xl p-4 space-y-3 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-sm text-gray-800"><i class="fa-solid fa-magnifying-glass-location text-orange-500 mr-1"></i> Lacak Pesanan</h3>
+                <button onclick="closeTrackOrder()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="flex gap-2">
+                <input type="text" id="track-code-input" placeholder="Contoh: INV-20260923-6239" class="flex-1 border rounded-lg p-2 text-xs" onkeydown="if(event.key==='Enter') doTrackOrder()">
+                <button onclick="doTrackOrder()" class="bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-3 rounded-lg">Cari</button>
+            </div>
+            <p id="track-error" class="hidden text-xs text-red-500"></p>
+            <div id="track-result" class="hidden bg-gray-50 rounded-xl p-3 text-xs space-y-1.5">
+                <div class="flex justify-between"><span class="text-gray-500">No. Pesanan</span><span id="tr-code" class="font-semibold">-</span></div>
+                <div class="flex justify-between"><span class="text-gray-500">Pemesan</span><span id="tr-buyer" class="text-right">-</span></div>
+                <div class="flex justify-between"><span class="text-gray-500">Status Pembayaran</span><span id="tr-payment" class="font-semibold text-orange-600">-</span></div>
+                <div class="flex justify-between"><span class="text-gray-500">Status Pesanan</span><span id="tr-order" class="font-semibold text-blue-600">-</span></div>
+                <div class="flex gap-2 pt-2">
+                    <a id="tr-nota-link" href="#" target="_blank" class="flex-1 bg-gray-900 hover:bg-gray-800 text-white text-center font-bold py-2 rounded-lg">Lihat Invoice</a>
+                    <a id="tr-wa-link" href="#" target="_blank" class="flex-1 bg-green-500 hover:bg-green-600 text-white text-center font-bold py-2 rounded-lg"><i class="fa-brands fa-whatsapp"></i> Admin</a>
+                </div>
             </div>
         </div>
     </div>
@@ -425,10 +454,10 @@
                         </div>
                     </a>
                     <div class="p-2 pt-0 flex gap-1.5">
-                        <button onclick='buyNow(${JSON.stringify(p.name)}, ${price}, ${JSON.stringify(p.category)})' class="flex-1 bg-gray-900 hover:bg-gray-800 text-white text-xs py-1.5 rounded-lg font-medium transition">
+                        <button onclick='buyNow(${JSON.stringify(p.name)}, ${price}, ${JSON.stringify(p.category)}, ${Number(p.price)})' class="flex-1 bg-gray-900 hover:bg-gray-800 text-white text-xs py-1.5 rounded-lg font-medium transition">
                             Beli
                         </button>
-                        <button onclick='addToCartAnimated(event, ${JSON.stringify(p.name)}, ${price}, ${JSON.stringify(p.category)})' class="flex-1 bg-orange-500 hover:bg-orange-600 text-white text-xs py-1.5 rounded-lg font-medium transition">
+                        <button onclick='addToCartAnimated(event, ${JSON.stringify(p.name)}, ${price}, ${JSON.stringify(p.category)}, ${Number(p.price)})' class="flex-1 bg-orange-500 hover:bg-orange-600 text-white text-xs py-1.5 rounded-lg font-medium transition">
                             <i class="fa-solid fa-cart-plus"></i> Keranjang
                         </button>
                     </div>
@@ -455,27 +484,27 @@
         document.getElementById('search-input-desktop').addEventListener('input', handleSearchInput);
 
         // ============== KERANJANG ==============
-        function addToCartCore(name, price, category) {
+        function addToCartCore(name, price, category, originalPrice) {
             const cart = getCart();
             const existing = cart.find(i => i.name === name);
             if (existing) {
                 existing.qty += 1;
             } else {
-                cart.push({ name, price, qty: 1, category: category || '' });
+                cart.push({ name, price, qty: 1, category: category || '', original_price: originalPrice || price });
             }
             saveCart(cart);
             return cart;
         }
 
         // Tombol "Beli": langsung tambah ke keranjang & buka modal keranjang untuk checkout cepat
-        function buyNow(name, price, category) {
-            addToCartCore(name, price, category);
+        function buyNow(name, price, category, originalPrice) {
+            addToCartCore(name, price, category, originalPrice);
             openCart();
         }
 
         // Tombol "Keranjang": tambah ke keranjang + animasi barang "terbang" ke ikon keranjang di header
-        function addToCartAnimated(e, name, price, category) {
-            addToCartCore(name, price, category);
+        function addToCartAnimated(e, name, price, category, originalPrice) {
+            addToCartCore(name, price, category, originalPrice);
             flyToCart(e.currentTarget);
         }
 
@@ -583,6 +612,47 @@
         function openCart() {
             renderCart();
             showModal('cart-modal');
+        }
+
+        function openTrackOrder() {
+            document.getElementById('track-code-input').value = '';
+            document.getElementById('track-error').classList.add('hidden');
+            document.getElementById('track-result').classList.add('hidden');
+            showModal('track-modal');
+            setTimeout(() => document.getElementById('track-code-input').focus(), 250);
+        }
+
+        function closeTrackOrder() {
+            hideModal('track-modal');
+        }
+
+        async function doTrackOrder() {
+            const code = document.getElementById('track-code-input').value.trim();
+            const errorEl = document.getElementById('track-error');
+            const resultEl = document.getElementById('track-result');
+            errorEl.classList.add('hidden');
+            resultEl.classList.add('hidden');
+            if (!code) {
+                errorEl.innerText = 'Masukkan nomor pesanan dulu.';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+            try {
+                const res = await fetch(`/api/orders/track/${encodeURIComponent(code)}`);
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Pesanan tidak ditemukan.');
+
+                document.getElementById('tr-code').innerText = data.order_code;
+                document.getElementById('tr-buyer').innerText = `${data.buyer_name} (${data.buyer_wa})`;
+                document.getElementById('tr-payment').innerText = data.payment_status || 'Menunggu Pembayaran';
+                document.getElementById('tr-order').innerText = data.order_status || 'Diproses';
+                document.getElementById('tr-nota-link').href = `nota.html?id=${data.id}`;
+                document.getElementById('tr-wa-link').href = `https://wa.me/${ADMIN_WA_NUMBER}?text=${encodeURIComponent(`Halo Admin, saya ingin menanyakan pesanan No. ${data.order_code}`)}`;
+                resultEl.classList.remove('hidden');
+            } catch (err) {
+                errorEl.innerText = err.message;
+                errorEl.classList.remove('hidden');
+            }
         }
 
         function closeCart() {
