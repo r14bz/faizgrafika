@@ -131,9 +131,14 @@
             </div>
             <p class="text-xs text-gray-500" id="p-name-in-modal"></p>
             <input type="number" id="buy-qty-input" min="1" value="1" class="w-full border rounded-lg p-2.5 text-center text-lg font-bold">
-            <button onclick="confirmBuyQty()" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 rounded-xl text-sm transition">
-                Tambahkan ke Keranjang
-            </button>
+            <div class="flex gap-2">
+                <button onclick="confirmBuyNow()" class="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-bold py-2.5 rounded-xl text-sm transition">
+                    Beli
+                </button>
+                <button onclick="confirmBuyQty()" class="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 rounded-xl text-sm transition">
+                    Tambah Keranjang
+                </button>
+            </div>
         </div>
     </div>
 
@@ -359,7 +364,8 @@
             return cart;
         }
 
-        // Tombol "Beli Sekarang": tampilkan popup untuk isi jumlah, TETAP di halaman detail produk (tidak pindah halaman)
+        // Tombol "Beli Sekarang" DAN "Keranjang": sama-sama tampilkan popup jumlah pembelian dulu,
+        // TETAP di halaman detail produk (tidak pindah halaman) — popup punya 2 aksi: "Beli" & "Tambah Keranjang".
         function buyNowFromDetail() {
             if (!currentProduct) return;
             document.getElementById('p-name-in-modal').innerText = currentProduct.name;
@@ -371,11 +377,20 @@
             document.getElementById('buy-qty-modal').classList.add('hidden');
         }
 
+        // Tombol "Tambah Keranjang" di dalam popup: tambah ke keranjang, tetap di halaman ini
         function confirmBuyQty() {
             const qty = document.getElementById('buy-qty-input').value;
             addToCartCoreDetail(qty);
             closeBuyQtyModal();
             showToast(`${qty} pcs "${currentProduct.name}" ditambahkan ke keranjang.`);
+        }
+
+        // Tombol "Beli" di dalam popup: tambah ke keranjang, LANGSUNG lanjut ke halaman pembayaran
+        function confirmBuyNow() {
+            const qty = document.getElementById('buy-qty-input').value;
+            addToCartCoreDetail(qty);
+            closeBuyQtyModal();
+            window.location.href = 'index.html?directCheckout=1';
         }
 
         function showToast(message) {
@@ -386,12 +401,9 @@
             window._toastTimer = setTimeout(() => toast.classList.add('hidden'), 2500);
         }
 
+        // Tombol "Keranjang" (inline desktop & footer mobile) kini juga membuka popup jumlah yang sama
         function addToCartFromDetail(e) {
-            addToCartCoreDetail(1);
-            const btn = e.currentTarget;
-            const oldHtml = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-check mr-1"></i> Ditambahkan';
-            setTimeout(() => { btn.innerHTML = oldHtml; }, 900);
+            buyNowFromDetail();
         }
 
         loadProduct();

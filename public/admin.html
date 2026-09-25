@@ -16,6 +16,8 @@
         body { background-color: #f3f4f6; }
         .brand-font { font-family: 'Cinzel', serif; letter-spacing: 0.03em; }
         .tab-btn.active { background-color: #f97316; color: white; }
+        .order-group-btn.active { background-color: #1f2937; color: white; }
+        .order-group-btn { background-color: #f3f4f6; color: #4b5563; }
     </style>
 </head>
 <body class="text-gray-800 pb-12">
@@ -39,17 +41,19 @@
         </header>
 
         <!-- Navigasi Tab -->
-        <div class="max-w-6xl mx-auto px-4 pt-4">
-            <div class="bg-white p-1.5 rounded-xl shadow-sm border flex gap-1 text-xs font-semibold overflow-x-auto">
-                <button class="tab-btn active px-3 py-2 rounded-lg whitespace-nowrap" data-tab="tab-products" onclick="showTab('tab-products')">Produk & Promo</button>
-                <button class="tab-btn px-3 py-2 rounded-lg whitespace-nowrap" data-tab="tab-orders" onclick="showTab('tab-orders')">Pesanan Masuk</button>
-                <button class="tab-btn px-3 py-2 rounded-lg whitespace-nowrap" data-tab="tab-banners" onclick="showTab('tab-banners')">Banner Promo</button>
-                <button class="tab-btn px-3 py-2 rounded-lg whitespace-nowrap" data-tab="tab-payments" onclick="showTab('tab-payments')">Metode Pembayaran</button>
-                <button class="tab-btn px-3 py-2 rounded-lg whitespace-nowrap" data-tab="tab-report" onclick="showTab('tab-report')">Laporan Penjualan</button>
+        <div class="max-w-6xl mx-auto px-4 pt-4 lg:flex lg:gap-6 lg:items-start">
+            <div class="lg:w-56 lg:shrink-0 lg:sticky lg:top-4">
+                <div class="bg-white p-1.5 rounded-xl shadow-sm border flex lg:flex-col gap-1 text-xs font-semibold overflow-x-auto lg:overflow-visible">
+                    <button class="tab-btn active px-3 py-2 rounded-lg whitespace-nowrap lg:w-full lg:text-left" data-tab="tab-products" onclick="showTab('tab-products')"><i class="fa-solid fa-box w-4"></i> Produk & Promo</button>
+                    <button class="tab-btn px-3 py-2 rounded-lg whitespace-nowrap lg:w-full lg:text-left" data-tab="tab-orders" onclick="showTab('tab-orders')"><i class="fa-solid fa-receipt w-4"></i> Pesanan Masuk</button>
+                    <button class="tab-btn px-3 py-2 rounded-lg whitespace-nowrap lg:w-full lg:text-left" data-tab="tab-banners" onclick="showTab('tab-banners')"><i class="fa-solid fa-image w-4"></i> Banner Promo</button>
+                    <button class="tab-btn px-3 py-2 rounded-lg whitespace-nowrap lg:w-full lg:text-left" data-tab="tab-payments" onclick="showTab('tab-payments')"><i class="fa-solid fa-credit-card w-4"></i> Metode Pembayaran</button>
+                    <button class="tab-btn px-3 py-2 rounded-lg whitespace-nowrap lg:w-full lg:text-left" data-tab="tab-report" onclick="showTab('tab-report')"><i class="fa-solid fa-chart-line w-4"></i> Laporan Penjualan</button>
+                    <button class="tab-btn px-3 py-2 rounded-lg whitespace-nowrap lg:w-full lg:text-left" data-tab="tab-settings" onclick="showTab('tab-settings')"><i class="fa-solid fa-gear w-4"></i> Pengaturan Toko</button>
+                </div>
             </div>
-        </div>
 
-        <main class="max-w-6xl mx-auto p-4 space-y-6">
+            <main class="flex-1 min-w-0 py-4 lg:py-0 space-y-6">
 
             <!-- ================= TAB: PRODUK & PROMO ================= -->
             <div id="tab-products" class="space-y-6">
@@ -123,7 +127,14 @@
                         <h3 class="font-bold text-sm text-gray-700"><i class="fa-solid fa-receipt text-orange-500 mr-1"></i> Pesanan Masuk</h3>
                         <span onclick="fetchOrders()" class="text-xs text-orange-500 cursor-pointer"><i class="fa-solid fa-rotate"></i> Refresh</span>
                     </div>
-                    <div class="overflow-x-auto">
+
+                    <div class="flex gap-1.5 text-xs font-semibold flex-wrap">
+                        <button class="order-group-btn active px-3 py-1.5 rounded-lg transition" data-group="Diproses" onclick="showOrderGroup('Diproses')">Diproses <span id="count-Diproses" class="ml-1 bg-white/70 rounded-full px-1.5">0</span></button>
+                        <button class="order-group-btn px-3 py-1.5 rounded-lg transition" data-group="Selesai" onclick="showOrderGroup('Selesai')">Selesai <span id="count-Selesai" class="ml-1 bg-white/70 rounded-full px-1.5">0</span></button>
+                        <button class="order-group-btn px-3 py-1.5 rounded-lg transition" data-group="Dibatalkan" onclick="showOrderGroup('Dibatalkan')">Dibatalkan <span id="count-Dibatalkan" class="ml-1 bg-white/70 rounded-full px-1.5">0</span></button>
+                    </div>
+
+                    <div id="order-group-Diproses" class="overflow-x-auto">
                         <table class="w-full text-left text-xs">
                             <thead>
                                 <tr class="bg-gray-50 text-gray-500 border-b">
@@ -136,9 +147,43 @@
                                     <th class="p-2 text-center">Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody id="admin-order-list" class="divide-y">
+                            <tbody id="admin-order-list-Diproses" class="divide-y">
                                 <tr><td colspan="7" class="p-4 text-center text-gray-400">Memuat data...</td></tr>
                             </tbody>
+                        </table>
+                    </div>
+
+                    <div id="order-group-Selesai" class="hidden overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead>
+                                <tr class="bg-gray-50 text-gray-500 border-b">
+                                    <th class="p-2">No. Pesanan</th>
+                                    <th class="p-2">Pemesan</th>
+                                    <th class="p-2">Total</th>
+                                    <th class="p-2">File / Biodata</th>
+                                    <th class="p-2">Status Pembayaran</th>
+                                    <th class="p-2">Status Pesanan</th>
+                                    <th class="p-2 text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-order-list-Selesai" class="divide-y"></tbody>
+                        </table>
+                    </div>
+
+                    <div id="order-group-Dibatalkan" class="hidden overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead>
+                                <tr class="bg-gray-50 text-gray-500 border-b">
+                                    <th class="p-2">No. Pesanan</th>
+                                    <th class="p-2">Pemesan</th>
+                                    <th class="p-2">Total</th>
+                                    <th class="p-2">File / Biodata</th>
+                                    <th class="p-2">Status Pembayaran</th>
+                                    <th class="p-2">Status Pesanan</th>
+                                    <th class="p-2 text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-order-list-Dibatalkan" class="divide-y"></tbody>
                         </table>
                     </div>
                 </div>
@@ -223,7 +268,47 @@
                 </div>
             </div>
 
+            <!-- ================= TAB: PENGATURAN TOKO ================= -->
+            <div id="tab-settings" class="hidden space-y-6">
+                <div class="bg-white p-4 rounded-xl shadow-sm border space-y-4">
+                    <h3 class="font-bold text-sm text-gray-700 border-b pb-2"><i class="fa-solid fa-gear text-orange-500 mr-1"></i> Logo Toko</h3>
+                    <div class="flex items-center gap-4">
+                        <img id="settings-logo-preview" src="" class="hidden w-16 h-16 object-contain rounded-lg border bg-gray-50">
+                        <div class="flex-1">
+                            <input type="file" id="settings-logo-file" accept="image/*" class="w-full border rounded-lg p-2 text-xs bg-white" onchange="handleLogoUpload(event)">
+                            <p id="settings-logo-status" class="text-[10px] text-gray-400 mt-1">Kosongkan kalau tidak ingin ganti logo (pakai ikon printer default).</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl shadow-sm border space-y-4">
+                    <h3 class="font-bold text-sm text-gray-700 border-b pb-2"><i class="fa-solid fa-location-dot text-orange-500 mr-1"></i> Alamat & Kontak Toko</h3>
+                    <p class="text-[11px] text-gray-400">Data ini ditampilkan di bagian footer toko (alamat, peta lokasi, dan tombol WhatsApp).</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        <div class="sm:col-span-2">
+                            <label class="block font-medium text-gray-600 mb-1">Alamat Lengkap</label>
+                            <textarea id="settings-address" rows="2" class="w-full border rounded-lg p-2"></textarea>
+                        </div>
+                        <div>
+                            <label class="block font-medium text-gray-600 mb-1">Latitude (Maps)</label>
+                            <input type="text" id="settings-lat" placeholder="-6.890111" class="w-full border rounded-lg p-2">
+                        </div>
+                        <div>
+                            <label class="block font-medium text-gray-600 mb-1">Longitude (Maps)</label>
+                            <input type="text" id="settings-lng" placeholder="108.505784" class="w-full border rounded-lg p-2">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block font-medium text-gray-600 mb-1">Nomor WhatsApp Admin</label>
+                            <input type="text" id="settings-wa" placeholder="6289676707976" class="w-full border rounded-lg p-2">
+                            <p class="text-[10px] text-gray-400 mt-1">Format: kode negara tanpa tanda "+" (contoh: 6289676707976).</p>
+                        </div>
+                    </div>
+                    <button onclick="saveSettings()" id="save-settings-btn" class="bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 py-2 rounded-lg text-xs transition">Simpan Pengaturan</button>
+                </div>
+            </div>
+
         </main>
+        </div>
     </div>
 
     <!-- Modal Edit Produk -->
@@ -594,64 +679,88 @@
         }
 
         // ============== PESANAN ==============
+        let allOrdersCache = [];
+        let currentOrderGroup = 'Diproses';
+        const paymentStatuses = ['Menunggu Pembayaran', 'Lunas', 'COD (Cash On Delivery)', 'Dibatalkan/Ditolak'];
+        const orderStatuses = ['Diproses', 'Selesai', 'Dibatalkan'];
+
+        function showOrderGroup(group) {
+            currentOrderGroup = group;
+            ['Diproses', 'Selesai', 'Dibatalkan'].forEach(g => {
+                document.getElementById(`order-group-${g}`).classList.toggle('hidden', g !== group);
+            });
+            document.querySelectorAll('.order-group-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.group === group));
+        }
+
+        function renderOrderRow(o) {
+            const fileLinks = (o.items || [])
+                .filter(i => i.file_url)
+                .map(i => `<a href="${i.file_url}" target="_blank" class="text-blue-500 underline block">${i.file_name || 'File'}</a>`)
+                .join('');
+            const biodata = o.biodata && Object.keys(o.biodata).length > 0
+                ? `<div class="text-[10px] text-purple-600 mt-1">Acara: ${o.biodata.nama_acara || '-'}<br>Tgl: ${o.biodata.tanggal_acara || '-'}<br>Lokasi: ${o.biodata.lokasi_acara || '-'}</div>`
+                : '';
+            const designNotes = (o.items || [])
+                .filter(i => i.note)
+                .map(i => `<div class="text-[10px] text-amber-700 mt-1"><b>${i.name}:</b> ${i.note}</div>`)
+                .join('');
+            const paymentStatus = o.payment_status || 'Menunggu Pembayaran';
+            const orderStatus = o.order_status || 'Diproses';
+            const hasFiles = (o.items || []).some(i => i.file_url);
+            const canDeleteFiles = hasFiles && ['Selesai', 'Dibatalkan'].includes(orderStatus);
+            const canDeleteOrder = orderStatus === 'Dibatalkan';
+
+            return `
+            <tr class="align-top">
+                <td class="p-2 font-medium">${o.order_code}</td>
+                <td class="p-2">${o.buyer_name}<br><span class="text-gray-400">${o.buyer_wa}</span></td>
+                <td class="p-2 text-orange-600 font-bold">${formatRupiah(o.total_amount)}</td>
+                <td class="p-2">
+                    <div class="max-h-16 overflow-y-auto pr-1">${fileLinks || '-'}${biodata}${designNotes}</div>
+                </td>
+                <td class="p-2">
+                    <select id="payment-status-${o.id}" onchange="syncCancelStatus('${o.id}', this.value)" class="border rounded p-1 text-[11px] w-full">
+                        ${paymentStatuses.map(s => `<option value="${s}" ${s === paymentStatus ? 'selected' : ''}>${s}</option>`).join('')}
+                    </select>
+                </td>
+                <td class="p-2">
+                    <select id="order-status-${o.id}" class="border rounded p-1 text-[11px] w-full">
+                        ${orderStatuses.map(s => `<option value="${s}" ${s === orderStatus ? 'selected' : ''}>${s}</option>`).join('')}
+                    </select>
+                </td>
+                <td class="p-2 text-center space-y-1">
+                    <button id="save-status-${o.id}" onclick="saveOrderStatus('${o.id}')" class="bg-blue-50 text-blue-600 px-2 py-1 rounded font-medium hover:bg-blue-100 block w-full"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>
+                    <a href="${toWaLink(o.buyer_wa)}" target="_blank" class="bg-green-50 text-green-600 px-2 py-1 rounded font-medium hover:bg-green-100 block"><i class="fa-brands fa-whatsapp"></i> Hubungi</a>
+                    <a href="nota.html?id=${o.id}" target="_blank" class="bg-orange-50 text-orange-600 px-2 py-1 rounded font-medium hover:bg-orange-100 block"><i class="fa-solid fa-file-invoice"></i> Nota</a>
+                    ${canDeleteFiles ? `<button onclick="deleteOrderFiles('${o.id}')" class="bg-yellow-50 text-yellow-700 px-2 py-1 rounded font-medium hover:bg-yellow-100 block w-full"><i class="fa-solid fa-file-circle-xmark"></i> Hapus File</button>` : ''}
+                    ${canDeleteOrder ? `<button onclick="deleteOrder('${o.id}')" class="bg-red-50 text-red-600 px-2 py-1 rounded font-medium hover:bg-red-100 block w-full"><i class="fa-solid fa-trash"></i> Hapus</button>` : ''}
+                </td>
+            </tr>
+            `;
+        }
+
         async function fetchOrders() {
-            const tbody = document.getElementById('admin-order-list');
-            tbody.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-gray-400">Memuat data...</td></tr>';
+            ['Diproses', 'Selesai', 'Dibatalkan'].forEach(g => {
+                document.getElementById(`admin-order-list-${g}`).innerHTML = '<tr><td colspan="7" class="p-4 text-center text-gray-400">Memuat data...</td></tr>';
+            });
             try {
                 const res = await fetch('/api/orders', { headers: authHeaders() });
                 const orders = await res.json();
+                allOrdersCache = Array.isArray(orders) ? orders : [];
 
-                if (!Array.isArray(orders) || orders.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-gray-400">Belum ada pesanan masuk.</td></tr>';
-                    return;
-                }
-
-                const paymentStatuses = ['Menunggu Pembayaran', 'Lunas', 'COD (Cash On Delivery)', 'Dibatalkan/Ditolak'];
-                const orderStatuses = ['Diproses', 'Selesai', 'Dibatalkan'];
-
-                tbody.innerHTML = orders.map(o => {
-                    const fileLinks = (o.items || [])
-                        .filter(i => i.file_url)
-                        .map(i => `<a href="${i.file_url}" target="_blank" class="text-blue-500 underline block">${i.file_name || 'File'}</a>`)
-                        .join('');
-                    const biodata = o.biodata && Object.keys(o.biodata).length > 0
-                        ? `<div class="text-[10px] text-purple-600 mt-1">Acara: ${o.biodata.nama_acara || '-'}<br>Tgl: ${o.biodata.tanggal_acara || '-'}<br>Lokasi: ${o.biodata.lokasi_acara || '-'}</div>`
-                        : '';
-                    const designNotes = (o.items || [])
-                        .filter(i => i.note)
-                        .map(i => `<div class="text-[10px] text-amber-700 mt-1"><b>${i.name}:</b> ${i.note}</div>`)
-                        .join('');
-                    const paymentStatus = o.payment_status || 'Menunggu Pembayaran';
-                    const orderStatus = o.order_status || 'Diproses';
-
-                    return `
-                    <tr class="align-top">
-                        <td class="p-2 font-medium">${o.order_code}</td>
-                        <td class="p-2">${o.buyer_name}<br><span class="text-gray-400">${o.buyer_wa}</span></td>
-                        <td class="p-2 text-orange-600 font-bold">${formatRupiah(o.total_amount)}</td>
-                        <td class="p-2">
-                            <div class="max-h-16 overflow-y-auto pr-1">${fileLinks || '-'}${biodata}${designNotes}</div>
-                        </td>
-                        <td class="p-2">
-                            <select id="payment-status-${o.id}" onchange="syncCancelStatus('${o.id}', this.value)" class="border rounded p-1 text-[11px] w-full">
-                                ${paymentStatuses.map(s => `<option value="${s}" ${s === paymentStatus ? 'selected' : ''}>${s}</option>`).join('')}
-                            </select>
-                        </td>
-                        <td class="p-2">
-                            <select id="order-status-${o.id}" class="border rounded p-1 text-[11px] w-full">
-                                ${orderStatuses.map(s => `<option value="${s}" ${s === orderStatus ? 'selected' : ''}>${s}</option>`).join('')}
-                            </select>
-                        </td>
-                        <td class="p-2 text-center space-y-1">
-                            <button id="save-status-${o.id}" onclick="saveOrderStatus('${o.id}')" class="bg-blue-50 text-blue-600 px-2 py-1 rounded font-medium hover:bg-blue-100 block w-full"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>
-                            <a href="${toWaLink(o.buyer_wa)}" target="_blank" class="bg-green-50 text-green-600 px-2 py-1 rounded font-medium hover:bg-green-100 block"><i class="fa-brands fa-whatsapp"></i> Hubungi</a>
-                            <a href="nota.html?id=${o.id}" target="_blank" class="bg-orange-50 text-orange-600 px-2 py-1 rounded font-medium hover:bg-orange-100 block"><i class="fa-solid fa-file-invoice"></i> Nota</a>
-                        </td>
-                    </tr>
-                `;
-                }).join('');
+                ['Diproses', 'Selesai', 'Dibatalkan'].forEach(group => {
+                    const rows = allOrdersCache.filter(o => (o.order_status || 'Diproses') === group);
+                    document.getElementById(`count-${group}`).innerText = rows.length;
+                    const tbody = document.getElementById(`admin-order-list-${group}`);
+                    tbody.innerHTML = rows.length > 0
+                        ? rows.map(renderOrderRow).join('')
+                        : '<tr><td colspan="7" class="p-4 text-center text-gray-400">Belum ada pesanan di kategori ini.</td></tr>';
+                });
+                showOrderGroup(currentOrderGroup);
             } catch (e) {
-                tbody.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-red-500">Gagal memuat pesanan.</td></tr>';
+                ['Diproses', 'Selesai', 'Dibatalkan'].forEach(g => {
+                    document.getElementById(`admin-order-list-${g}`).innerHTML = '<tr><td colspan="7" class="p-4 text-center text-red-500">Gagal memuat pesanan.</td></tr>';
+                });
             }
         }
 
@@ -679,12 +788,39 @@
                     body: JSON.stringify({ payment_status, order_status })
                 });
                 if (!res.ok) throw new Error();
-                btn.innerHTML = '<i class="fa-solid fa-check"></i> Tersimpan';
-                setTimeout(() => { btn.innerHTML = oldHtml; btn.disabled = false; }, 1200);
+                // Status pesanan bisa saja pindah kategori (mis. Diproses -> Selesai), jadi muat ulang & regroup
+                await fetchOrders();
             } catch (err) {
                 alert('Gagal menyimpan status pesanan. Coba lagi.');
                 btn.innerHTML = oldHtml;
                 btn.disabled = false;
+            }
+        }
+
+        // Hapus file yang diunggah pelanggan pada sebuah pesanan (supaya tidak menumpuk di storage Supabase).
+        // Hanya diizinkan untuk pesanan berstatus "Selesai" atau "Dibatalkan" (dijaga juga di backend).
+        async function deleteOrderFiles(id) {
+            if (!confirm('Hapus file yang diunggah pada pesanan ini dari server? Link file di invoice akan hilang.')) return;
+            try {
+                const res = await fetch(`/api/orders/${id}/files`, { method: 'DELETE', headers: authHeaders() });
+                const result = await res.json();
+                if (!res.ok) throw new Error(result.error || '');
+                await fetchOrders();
+            } catch (err) {
+                alert('Gagal menghapus file: ' + err.message);
+            }
+        }
+
+        // Hapus pesanan yang sudah dibatalkan (permanen).
+        async function deleteOrder(id) {
+            if (!confirm('Hapus pesanan ini secara permanen? Tindakan ini tidak bisa dibatalkan.')) return;
+            try {
+                const res = await fetch(`/api/orders/${id}`, { method: 'DELETE', headers: authHeaders() });
+                const result = await res.json();
+                if (!res.ok) throw new Error(result.error || '');
+                await fetchOrders();
+            } catch (err) {
+                alert('Gagal menghapus pesanan: ' + err.message);
             }
         }
 
@@ -842,6 +978,70 @@
             fetchOrders();
             fetchBanners();
             fetchPaymentMethods();
+            fetchSettings();
+        }
+
+        // ============== PENGATURAN TOKO ==============
+        let currentLogoUrl = '';
+
+        async function fetchSettings() {
+            try {
+                const res = await fetch('/api/settings');
+                const data = await res.json();
+                document.getElementById('settings-address').value = data.store_address || '';
+                document.getElementById('settings-lat').value = data.maps_lat ?? '';
+                document.getElementById('settings-lng').value = data.maps_lng ?? '';
+                document.getElementById('settings-wa').value = data.admin_wa || '';
+                currentLogoUrl = data.logo_url || '';
+                const preview = document.getElementById('settings-logo-preview');
+                if (currentLogoUrl) {
+                    preview.src = currentLogoUrl;
+                    preview.classList.remove('hidden');
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        async function handleLogoUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const statusEl = document.getElementById('settings-logo-status');
+            statusEl.innerText = 'Mengunggah logo...';
+            try {
+                currentLogoUrl = await uploadImageFile(file);
+                const preview = document.getElementById('settings-logo-preview');
+                preview.src = currentLogoUrl;
+                preview.classList.remove('hidden');
+                statusEl.innerText = 'Logo siap disimpan — klik "Simpan Pengaturan" di bawah.';
+            } catch (err) {
+                statusEl.innerText = 'Gagal mengunggah logo: ' + err.message;
+            }
+        }
+
+        async function saveSettings() {
+            const btn = document.getElementById('save-settings-btn');
+            const oldHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerText = 'Menyimpan...';
+            try {
+                const res = await fetch('/api/admin/settings', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+                    body: JSON.stringify({
+                        store_address: document.getElementById('settings-address').value,
+                        maps_lat: document.getElementById('settings-lat').value,
+                        maps_lng: document.getElementById('settings-lng').value,
+                        admin_wa: document.getElementById('settings-wa').value,
+                        logo_url: currentLogoUrl
+                    })
+                });
+                if (!res.ok) throw new Error();
+                btn.innerText = 'Tersimpan!';
+                setTimeout(() => { btn.innerHTML = oldHtml; btn.disabled = false; }, 1200);
+            } catch (err) {
+                alert('Gagal menyimpan pengaturan.');
+                btn.innerHTML = oldHtml;
+                btn.disabled = false;
+            }
         }
 
         checkAuth();

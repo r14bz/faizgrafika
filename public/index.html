@@ -50,13 +50,15 @@
                     <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-gray-400 text-sm"></i>
                 </div>
             </div>
-            <div class="flex items-center space-x-3 lg:space-x-4">
-                <button onclick="openTrackOrder()" class="text-gray-600 hover:text-orange-500" title="Lacak Pesanan">
+            <div class="flex items-center space-x-4 lg:space-x-6">
+                <button onclick="openTrackOrder()" class="flex flex-col items-center text-gray-600 hover:text-orange-500 leading-none" title="Lacak Pesanan">
                     <i class="fa-solid fa-magnifying-glass-location text-lg lg:text-2xl"></i>
+                    <span class="text-[9px] lg:text-[11px] font-medium mt-0.5">Lacak Pesanan</span>
                 </button>
-                <button onclick="openCart()" id="header-cart-btn" class="relative text-gray-600 hover:text-orange-500">
+                <button onclick="openCart()" id="header-cart-btn" class="relative flex flex-col items-center text-gray-600 hover:text-orange-500 leading-none">
                     <i class="fa-solid fa-cart-shopping text-lg lg:text-2xl"></i>
-                    <span id="cart-badge" class="hidden absolute -top-2 -right-2 bg-orange-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">0</span>
+                    <span id="cart-badge" class="hidden absolute -top-1.5 -right-1.5 bg-orange-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">0</span>
+                    <span class="text-[9px] lg:text-[11px] font-medium mt-0.5">Keranjang Saya</span>
                 </button>
             </div>
         </div>
@@ -113,6 +115,25 @@
             </div>
         </div>
     </main>
+
+    <!-- Footer: Alamat, Peta Lokasi, Kontak WhatsApp -->
+    <footer class="max-w-md lg:max-w-7xl mx-auto px-4 lg:px-8 mt-8 pb-24 lg:pb-10">
+        <div class="bg-white rounded-2xl shadow-sm border p-5 lg:p-8 grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-8">
+            <div class="space-y-2">
+                <h3 class="brand-font font-bold text-base lg:text-lg text-gray-900">FAIZGRAFIKA</h3>
+                <div class="flex gap-2 text-xs lg:text-sm text-gray-500">
+                    <i class="fa-solid fa-location-dot text-orange-500 mt-0.5"></i>
+                    <p id="footer-address">Memuat alamat...</p>
+                </div>
+                <a id="footer-wa-link" href="#" target="_blank" class="inline-flex items-center gap-2 text-xs lg:text-sm bg-green-500 hover:bg-green-600 text-white font-semibold px-3 py-2 rounded-lg transition mt-2">
+                    <i class="fa-brands fa-whatsapp text-base"></i> Hubungi Admin
+                </a>
+            </div>
+            <div class="rounded-xl overflow-hidden border h-40 lg:h-full min-h-[10rem]">
+                <iframe id="footer-map" src="" width="100%" height="100%" style="border:0;" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </div>
+        </div>
+    </footer>
 
     <!-- Tombol Keranjang Melayang (muncul jika ada isi) -->
     <button id="floating-cart-btn" onclick="openCart()" class="hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-40 bg-gray-900 text-white text-xs font-semibold px-5 py-3 rounded-full shadow-lg items-center space-x-2">
@@ -249,8 +270,23 @@
         </div>
     </div>
 
+    <!-- Modal Jumlah Pembelian (dipakai tombol "Keranjang" di kartu produk) -->
+    <div id="qty-modal" class="modal-overlay fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+        <div class="modal-panel bg-white w-full max-w-xs rounded-2xl p-4 space-y-3">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-sm text-gray-800">Jumlah Pembelian</h3>
+                <button onclick="closeQtyModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <p id="qty-modal-product-name" class="text-xs text-gray-500"></p>
+            <input type="number" id="qty-modal-input" min="1" value="1" class="w-full border rounded-lg p-2.5 text-center text-lg font-bold" onkeydown="if(event.key==='Enter') confirmQtyAddToCart()">
+            <button onclick="confirmQtyAddToCart()" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 rounded-xl text-sm transition">
+                Tambahkan ke Keranjang
+            </button>
+        </div>
+    </div>
+
     <script>
-        const ADMIN_WA_NUMBER = '6289676707976'; // Ganti dengan nomor WhatsApp Admin Anda
+        let ADMIN_WA_NUMBER = '6289676707976'; // Fallback, akan ditimpa oleh pengaturan toko dari admin (lihat loadSiteSettings)
         const CART_KEY = 'faizgrafika_cart';
         const UPLOAD_CATEGORIES = ['Cetak Dokumen', 'Fotocopy'];
         const NOTE_CATEGORIES = ['Desain Banner / Logo']; // kategori yang menampilkan kolom catatan konsumen
@@ -484,13 +520,14 @@
         document.getElementById('search-input-desktop').addEventListener('input', handleSearchInput);
 
         // ============== KERANJANG ==============
-        function addToCartCore(name, price, category, originalPrice) {
+        function addToCartCore(name, price, category, originalPrice, qty) {
+            qty = Math.max(1, parseInt(qty, 10) || 1);
             const cart = getCart();
             const existing = cart.find(i => i.name === name);
             if (existing) {
-                existing.qty += 1;
+                existing.qty += qty;
             } else {
-                cart.push({ name, price, qty: 1, category: category || '', original_price: originalPrice || price });
+                cart.push({ name, price, qty, category: category || '', original_price: originalPrice || price });
             }
             saveCart(cart);
             return cart;
@@ -502,10 +539,34 @@
             openCart();
         }
 
-        // Tombol "Keranjang": tambah ke keranjang + animasi barang "terbang" ke ikon keranjang di header
+        // Tombol "Keranjang" di kartu produk: tampilkan popup jumlah pembelian dulu sebelum benar-benar masuk keranjang
         function addToCartAnimated(e, name, price, category, originalPrice) {
-            addToCartCore(name, price, category, originalPrice);
-            flyToCart(e.currentTarget);
+            openQtyModal(name, price, category, originalPrice, e.currentTarget);
+        }
+
+        // ============== POPUP JUMLAH PEMBELIAN (dipakai tombol "Keranjang" di kartu produk) ==============
+        let qtyModalContext = null;
+
+        function openQtyModal(name, price, category, originalPrice, triggerEl) {
+            qtyModalContext = { name, price, category, originalPrice, triggerEl };
+            document.getElementById('qty-modal-product-name').innerText = name;
+            document.getElementById('qty-modal-input').value = 1;
+            showModal('qty-modal');
+            setTimeout(() => document.getElementById('qty-modal-input').focus(), 200);
+        }
+
+        function closeQtyModal() {
+            hideModal('qty-modal');
+            qtyModalContext = null;
+        }
+
+        function confirmQtyAddToCart() {
+            if (!qtyModalContext) return;
+            const qty = document.getElementById('qty-modal-input').value;
+            const { name, price, category, originalPrice, triggerEl } = qtyModalContext;
+            addToCartCore(name, price, category, originalPrice, qty);
+            closeQtyModal();
+            if (triggerEl) flyToCart(triggerEl);
         }
 
         function flyToCart(originEl) {
@@ -896,14 +957,49 @@
             });
         })();
 
+        // ============== PENGATURAN TOKO (alamat, maps, WA admin, logo) ==============
+        async function loadSiteSettings() {
+            try {
+                const res = await fetch('/api/settings');
+                const s = await res.json();
+                if (!s || Object.keys(s).length === 0) return;
+
+                if (s.admin_wa) ADMIN_WA_NUMBER = s.admin_wa;
+
+                const address = s.store_address || '';
+                document.getElementById('footer-address').innerText = address;
+
+                const waLink = document.getElementById('footer-wa-link');
+                waLink.href = `https://wa.me/${ADMIN_WA_NUMBER}?text=${encodeURIComponent('Halo Admin FaizGrafika, saya ingin bertanya-tanya.')}`;
+
+                if (s.maps_lat && s.maps_lng) {
+                    document.getElementById('footer-map').src = `https://www.google.com/maps?q=${s.maps_lat},${s.maps_lng}&z=16&output=embed`;
+                }
+
+                if (s.logo_url) {
+                    document.getElementById('brand-logo').innerHTML = `
+                        <img src="${s.logo_url}" alt="FaizGrafika" class="h-8 lg:h-10 object-contain">
+                        <span class="brand-font font-bold text-lg lg:text-2xl text-gray-900">FAIZGRAFIKA</span>
+                    `;
+                }
+            } catch (err) { /* biarkan tampilan default kalau gagal memuat */ }
+        }
+
         loadProducts();
         loadBanners();
         loadPaymentMethods();
+        loadSiteSettings();
         renderCartBadge();
 
         // Jika datang dari tombol "Beli Sekarang" di halaman detail produk, langsung buka keranjang
-        if (new URLSearchParams(window.location.search).get('openCart') === '1') {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('openCart') === '1') {
             openCart();
+            window.history.replaceState({}, '', 'index.html');
+        }
+        // Jika datang dari tombol "Beli" di popup jumlah pembelian halaman detail produk, langsung lanjut ke pembayaran
+        if (urlParams.get('directCheckout') === '1') {
+            openCheckout();
             window.history.replaceState({}, '', 'index.html');
         }
     </script>
