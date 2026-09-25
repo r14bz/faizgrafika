@@ -352,6 +352,14 @@
                 <label class="block font-medium text-gray-600 mb-1 text-xs">Deskripsi Lengkap Produk</label>
                 <textarea id="edit-description" rows="3" class="w-full border rounded-lg p-2 text-xs"></textarea>
             </div>
+            <div class="border-t pt-2">
+                <div class="flex items-center justify-between mb-1">
+                    <label class="block font-medium text-gray-600 text-xs">Varian Produk (opsional)</label>
+                    <button type="button" onclick="addVariantRow()" class="text-orange-600 hover:text-orange-700 text-[11px] font-semibold"><i class="fa-solid fa-plus mr-0.5"></i> Tambah Varian</button>
+                </div>
+                <p class="text-[10px] text-gray-400 mb-2">Contoh: "Luxury Eco 01", "Luxury Eco 02", dst. Kosongkan Harga/Stok kalau ingin ikut harga & stok produk induk. Kalau tidak ada varian ditambahkan, pembeli langsung beli tanpa perlu pilih variasi.</p>
+                <div id="edit-variant-list" class="space-y-1.5"></div>
+            </div>
             <button onclick="saveEditProduct()" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 py-2 rounded-lg text-xs transition">Simpan Perubahan</button>
         </div>
     </div>
@@ -582,6 +590,7 @@
 
         // ============== EDIT PRODUK ==============
         let editProductImages = [];
+        let editVariantRows = [];
 
         function openEditProduct(p) {
             document.getElementById('edit-id').value = p.id;
@@ -592,7 +601,63 @@
             document.getElementById('edit-description').value = p.description || '';
             editProductImages = Array.isArray(p.image_urls) && p.image_urls.length > 0 ? [...p.image_urls] : (p.image_url ? [p.image_url] : []);
             renderImageChips('edit-image-preview', editProductImages, 'removeEditProductImage');
+
+            editVariantRows = Array.isArray(p.variants)
+                ? p.variants.map(v => ({ name: v.name, price: v.price ?? '', stock: v.stock ?? '' }))
+                : [];
+            renderVariantRows();
+
             document.getElementById('edit-product-modal').classList.remove('hidden');
+        }
+
+        // ---- Varian produk: daftar baris (nama, harga opsional, stok opsional) di form Edit Produk ----
+        function renderVariantRows() {
+            const wrap = document.getElementById('edit-variant-list');
+            if (editVariantRows.length === 0) {
+                wrap.innerHTML = '<p class="text-[10px] text-gray-400">Belum ada varian. Klik "Tambah Varian" kalau produk ini punya beberapa pilihan (mis. desain berbeda).</p>';
+                return;
+            }
+            wrap.innerHTML = editVariantRows.map((v, i) => `
+                <div class="flex gap-1.5 items-center">
+                    <input type="text" value="${(v.name || '').replace(/"/g, '&quot;')}" placeholder="Nama varian (mis. Luxury Eco 01)"
+                        oninput="updateVariantRow(${i}, 'name', this.value)" class="flex-1 border rounded-lg p-1.5 text-xs">
+                    <input type="number" value="${v.price}" placeholder="Harga (opsional)"
+                        oninput="updateVariantRow(${i}, 'price', this.value)" class="w-24 border rounded-lg p-1.5 text-xs">
+                    <input type="text" value="${v.stock}" placeholder="Stok (opsional)"
+                        oninput="updateVariantRow(${i}, 'stock', this.value)" class="w-20 border rounded-lg p-1.5 text-xs">
+                    <button type="button" onclick="removeVariantRow(${i})" class="text-red-400 hover:text-red-600 px-1"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            `).join('');
+        }
+
+        function addVariantRow() {
+            editVariantRows.push({ name: '', price: '', stock: '' });
+            renderVariantRows();
+        }
+
+        function updateVariantRow(i, key, value) {
+            if (!editVariantRows[i]) return;
+            editVariantRows[i][key] = value;
+        }
+
+        function removeVariantRow(i) {
+            editVariantRows.splice(i, 1);
+            renderVariantRows();
+        }
+
+        async function saveProductVariants(productId) {
+            const variants = editVariantRows
+                .map(v => ({ name: (v.name || '').trim(), price: v.price, stock: v.stock }))
+                .filter(v => v.name.length > 0);
+            const res = await fetch(`/api/admin/products/${productId}/variants`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', ...authHeaders() },
+                body: JSON.stringify({ variants })
+            });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.error || 'Gagal menyimpan varian produk.');
+            }
         }
 
         function closeEditProduct() {
@@ -634,16 +699,18 @@
                 image_urls: editProductImages,
                 image_url: editProductImages[0] || null
             };
-            const res = await fetch(`/api/products/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json', ...authHeaders() },
-                body: JSON.stringify(payload)
-            });
-            if (res.ok) {
+            try {
+                const res = await fetch(`/api/products/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+                    body: JSON.stringify(payload)
+                });
+                if (!res.ok) throw new Error('Gagal menyimpan perubahan produk.');
+                await saveProductVariants(id);
                 closeEditProduct();
                 fetchAdminProducts();
-            } else {
-                alert('Gagal menyimpan perubahan produk.');
+            } catch (err) {
+                alert(err.message || 'Gagal menyimpan perubahan produk.');
             }
         }
 

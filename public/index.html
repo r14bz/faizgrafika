@@ -270,7 +270,7 @@
         </div>
     </div>
 
-    <!-- Modal Jumlah Pembelian (dipakai tombol "Keranjang" di kartu produk) -->
+    <!-- Modal Jumlah Pembelian (dipakai tombol "Keranjang" di kartu produk, khusus produk TANPA varian) -->
     <div id="qty-modal" class="modal-overlay fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
         <div class="modal-panel bg-white w-full max-w-xs rounded-2xl p-4 space-y-3">
             <div class="flex justify-between items-center">
@@ -282,6 +282,43 @@
             <button onclick="confirmQtyAddToCart()" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 rounded-xl text-sm transition">
                 Tambahkan ke Keranjang
             </button>
+        </div>
+    </div>
+
+    <!-- Modal Pilih Variasi (muncul saat klik "Beli"/"Keranjang" pada produk yang punya varian) -->
+    <div id="variant-modal" class="modal-overlay fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+        <div class="modal-panel bg-white w-full max-w-sm rounded-2xl p-4 space-y-3 max-h-[85vh] overflow-y-auto">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-sm text-gray-800">Pilih Variasi</h3>
+                <button onclick="closeVariantModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="flex items-center gap-3">
+                <img id="variant-modal-img" class="w-14 h-14 rounded-lg object-cover bg-gray-100" src="">
+                <div>
+                    <p id="variant-modal-name" class="text-xs font-semibold text-gray-800 line-clamp-2"></p>
+                    <p id="variant-modal-price" class="text-sm font-bold text-orange-600"></p>
+                </div>
+            </div>
+            <div>
+                <p class="text-[10px] font-semibold text-gray-500 mb-1.5">VARIASI</p>
+                <div id="variant-modal-options" class="grid grid-cols-2 gap-1.5"></div>
+            </div>
+            <div class="flex items-center justify-between pt-1">
+                <span class="text-xs font-medium text-gray-600">Jumlah</span>
+                <div class="flex items-center gap-2">
+                    <button onclick="adjustVariantQty(-1)" class="w-7 h-7 rounded-full border text-gray-600 hover:bg-gray-50">−</button>
+                    <span id="variant-modal-qty" class="w-8 text-center font-bold text-sm">1</span>
+                    <button onclick="adjustVariantQty(1)" class="w-7 h-7 rounded-full border text-gray-600 hover:bg-gray-50">+</button>
+                </div>
+            </div>
+            <div class="flex items-center justify-between text-xs text-gray-500 border-t pt-2">
+                <span>Subtotal</span>
+                <span id="variant-modal-subtotal" class="font-bold text-gray-800"></span>
+            </div>
+            <div class="flex gap-2 pt-1">
+                <button onclick="confirmVariantModal('buy')" class="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-bold py-2.5 rounded-xl text-sm transition">Beli Sekarang</button>
+                <button onclick="confirmVariantModal('cart')" class="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 rounded-xl text-sm transition">Tambah Keranjang</button>
+            </div>
         </div>
     </div>
 
@@ -490,10 +527,10 @@
                         </div>
                     </a>
                     <div class="p-2 pt-0 flex gap-1.5">
-                        <button onclick='buyNow(${JSON.stringify(p.name)}, ${price}, ${JSON.stringify(p.category)}, ${Number(p.price)})' class="flex-1 bg-gray-900 hover:bg-gray-800 text-white text-xs py-1.5 rounded-lg font-medium transition">
+                        <button onclick='buyNow(${JSON.stringify(p.id)})' class="flex-1 bg-gray-900 hover:bg-gray-800 text-white text-xs py-1.5 rounded-lg font-medium transition">
                             Beli
                         </button>
-                        <button onclick='addToCartAnimated(event, ${JSON.stringify(p.name)}, ${price}, ${JSON.stringify(p.category)}, ${Number(p.price)})' class="flex-1 bg-orange-500 hover:bg-orange-600 text-white text-xs py-1.5 rounded-lg font-medium transition">
+                        <button onclick='addToCartAnimated(event, ${JSON.stringify(p.id)})' class="flex-1 bg-orange-500 hover:bg-orange-600 text-white text-xs py-1.5 rounded-lg font-medium transition">
                             <i class="fa-solid fa-cart-plus"></i> Keranjang
                         </button>
                     </div>
@@ -520,28 +557,118 @@
         document.getElementById('search-input-desktop').addEventListener('input', handleSearchInput);
 
         // ============== KERANJANG ==============
-        function addToCartCore(name, price, category, originalPrice, qty) {
+        function addToCartCore(name, price, category, originalPrice, qty, variant) {
             qty = Math.max(1, parseInt(qty, 10) || 1);
             const cart = getCart();
-            const existing = cart.find(i => i.name === name);
+            const variantName = variant || null;
+            const existing = cart.find(i => i.name === name && (i.variant || null) === variantName);
             if (existing) {
                 existing.qty += qty;
             } else {
-                cart.push({ name, price, qty, category: category || '', original_price: originalPrice || price });
+                cart.push({ name, price, qty, category: category || '', original_price: originalPrice || price, variant: variantName });
             }
             saveCart(cart);
             return cart;
         }
 
-        // Tombol "Beli": langsung tambah ke keranjang & buka modal keranjang untuk checkout cepat
-        function buyNow(name, price, category, originalPrice) {
-            addToCartCore(name, price, category, originalPrice);
+        // Tombol "Beli": produk tanpa varian langsung masuk keranjang (perilaku lama, tidak berubah).
+        // Produk dengan varian WAJIB pilih variasi dulu lewat popup.
+        function buyNow(id) {
+            const p = allProducts.find(x => String(x.id) === String(id));
+            if (!p) return;
+            if (Array.isArray(p.variants) && p.variants.length > 0) {
+                openVariantModal(p, null);
+                return;
+            }
+            addToCartCore(p.name, effectivePrice(p), p.category, Number(p.price));
             openCart();
         }
 
-        // Tombol "Keranjang" di kartu produk: tampilkan popup jumlah pembelian dulu sebelum benar-benar masuk keranjang
-        function addToCartAnimated(e, name, price, category, originalPrice) {
-            openQtyModal(name, price, category, originalPrice, e.currentTarget);
+        // Tombol "Keranjang" di kartu produk: produk tanpa varian tampilkan popup jumlah pembelian seperti biasa;
+        // produk dengan varian tampilkan popup pilih variasi dulu.
+        function addToCartAnimated(e, id) {
+            const p = allProducts.find(x => String(x.id) === String(id));
+            if (!p) return;
+            if (Array.isArray(p.variants) && p.variants.length > 0) {
+                openVariantModal(p, e.currentTarget);
+                return;
+            }
+            openQtyModal(p.name, effectivePrice(p), p.category, Number(p.price), e.currentTarget);
+        }
+
+        // ============== POPUP PILIH VARIASI (dipakai tombol "Beli"/"Keranjang" untuk produk yang punya varian) ==============
+        let variantModalContext = null; // { product, qty, selected, triggerEl }
+
+        function openVariantModal(p, triggerEl) {
+            const variants = (p.variants || []).slice().sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+            variantModalContext = { product: p, qty: 1, selected: variants[0] || null, triggerEl, variants };
+
+            document.getElementById('variant-modal-name').innerText = p.name;
+            const cover = (Array.isArray(p.image_urls) && p.image_urls[0]) || p.image_url || '';
+            document.getElementById('variant-modal-img').src = cover;
+
+            document.getElementById('variant-modal-options').innerHTML = variants.map((v, i) => `
+                <button type="button" onclick="selectVariant(${i})"
+                    class="variant-opt text-left border rounded-lg px-2.5 py-2 text-xs font-medium transition ${i === 0 ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-200 text-gray-700 hover:border-gray-400'}">
+                    ${v.name}
+                </button>
+            `).join('');
+
+            updateVariantModalSummary();
+            showModal('variant-modal');
+        }
+
+        function selectVariant(i) {
+            if (!variantModalContext) return;
+            variantModalContext.selected = variantModalContext.variants[i];
+            document.querySelectorAll('#variant-modal-options .variant-opt').forEach((btn, idx) => {
+                btn.classList.toggle('border-gray-900', idx === i);
+                btn.classList.toggle('bg-gray-900', idx === i);
+                btn.classList.toggle('text-white', idx === i);
+                btn.classList.toggle('border-gray-200', idx !== i);
+                btn.classList.toggle('text-gray-700', idx !== i);
+            });
+            updateVariantModalSummary();
+        }
+
+        function currentVariantUnitPrice() {
+            const { product, selected } = variantModalContext;
+            if (selected && selected.price !== null && selected.price !== undefined) return Number(selected.price);
+            return effectivePrice(product);
+        }
+
+        function updateVariantModalSummary() {
+            const price = currentVariantUnitPrice();
+            document.getElementById('variant-modal-price').innerText = formatRupiah(price);
+            document.getElementById('variant-modal-qty').innerText = variantModalContext.qty;
+            document.getElementById('variant-modal-subtotal').innerText = formatRupiah(price * variantModalContext.qty);
+        }
+
+        function adjustVariantQty(delta) {
+            if (!variantModalContext) return;
+            variantModalContext.qty = Math.max(1, variantModalContext.qty + delta);
+            updateVariantModalSummary();
+        }
+
+        function closeVariantModal() {
+            hideModal('variant-modal');
+            variantModalContext = null;
+        }
+
+        function confirmVariantModal(mode) {
+            if (!variantModalContext) return;
+            const { product, qty, selected, triggerEl } = variantModalContext;
+            if (!selected) { alert('Mohon pilih variasi terlebih dahulu.'); return; }
+
+            const price = currentVariantUnitPrice();
+            addToCartCore(product.name, price, product.category, Number(product.price), qty, selected.name);
+            closeVariantModal();
+
+            if (mode === 'buy') {
+                openCart();
+            } else if (triggerEl) {
+                flyToCart(triggerEl);
+            }
         }
 
         // ============== POPUP JUMLAH PEMBELIAN (dipakai tombol "Keranjang" di kartu produk) ==============
@@ -633,6 +760,7 @@
                     <div class="flex items-center justify-between bg-gray-50 rounded-lg p-2">
                         <div class="flex-1 pr-2">
                             <p class="font-medium text-gray-800 line-clamp-1">${item.name}</p>
+                            ${item.variant ? `<p class="text-[10px] text-gray-400">Varian: ${item.variant}</p>` : ''}
                             <p class="text-orange-600 font-bold">${formatRupiah(item.price)}</p>
                         </div>
                         <div class="flex items-center space-x-1.5">
@@ -726,7 +854,7 @@
             if (cart.length === 0) return;
 
             document.getElementById('checkout-summary').innerHTML = cart.map(i =>
-                `<div class="flex justify-between"><span>${i.qty}x ${i.name}</span><span>${formatRupiah(i.price * i.qty)}</span></div>`
+                `<div class="flex justify-between"><span>${i.qty}x ${i.name}${i.variant ? ` (${i.variant})` : ''}</span><span>${formatRupiah(i.price * i.qty)}</span></div>`
             ).join('');
             document.getElementById('checkout-total').innerText = 'Total: ' + formatRupiah(cartTotal(cart));
 

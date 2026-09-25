@@ -125,7 +125,7 @@
             const items = Array.isArray(order.items) ? order.items : [];
             document.getElementById('n-items').innerHTML = items.map(i => `
                 <tr>
-                    <td class="py-1.5">${i.name}</td>
+                    <td class="py-1.5">${i.name}${i.variant ? `<br><span class="text-gray-400 text-[10px]">Varian: ${i.variant}</span>` : ''}</td>
                     <td class="py-1.5 text-center">${i.qty}</td>
                     <td class="py-1.5 text-right">${formatRupiah(i.subtotal)}</td>
                 </tr>

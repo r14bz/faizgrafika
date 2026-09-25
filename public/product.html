@@ -130,6 +130,10 @@
                 <button onclick="closeBuyQtyModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             <p class="text-xs text-gray-500" id="p-name-in-modal"></p>
+            <div id="variant-picker-wrap" class="hidden space-y-1.5">
+                <p class="text-[10px] font-semibold text-gray-500">PILIH VARIASI</p>
+                <div id="variant-picker-options" class="grid grid-cols-2 gap-1.5"></div>
+            </div>
             <input type="number" id="buy-qty-input" min="1" value="1" class="w-full border rounded-lg p-2.5 text-center text-lg font-bold">
             <div class="flex gap-2">
                 <button onclick="confirmBuyNow()" class="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-bold py-2.5 rounded-xl text-sm transition">
@@ -349,19 +353,59 @@
             }
         }
 
+        let selectedVariant = null;
+
         function addToCartCoreDetail(qty) {
             if (!currentProduct) return null;
             qty = Math.max(1, parseInt(qty, 10) || 1);
             const cart = JSON.parse(localStorage.getItem(CART_KEY)) || [];
-            const price = effectivePrice(currentProduct);
-            const existing = cart.find(i => i.name === currentProduct.name);
+            const hasPriceOverride = selectedVariant && selectedVariant.price !== null && selectedVariant.price !== undefined;
+            const price = hasPriceOverride ? Number(selectedVariant.price) : effectivePrice(currentProduct);
+            const variantName = selectedVariant ? selectedVariant.name : null;
+            const existing = cart.find(i => i.name === currentProduct.name && (i.variant || null) === variantName);
             if (existing) {
                 existing.qty += qty;
             } else {
-                cart.push({ name: currentProduct.name, price, qty, category: currentProduct.category, original_price: currentProduct.price });
+                cart.push({ name: currentProduct.name, price, qty, category: currentProduct.category, original_price: currentProduct.price, variant: variantName });
             }
             localStorage.setItem(CART_KEY, JSON.stringify(cart));
             return cart;
+        }
+
+        // Render pilihan varian di dalam popup jumlah beli (kalau produk punya varian).
+        // Kalau produk tidak punya varian, bagian ini disembunyikan & pembeli langsung isi jumlah seperti biasa.
+        function renderVariantPicker() {
+            const wrap = document.getElementById('variant-picker-wrap');
+            const options = document.getElementById('variant-picker-options');
+            const variants = (currentProduct && Array.isArray(currentProduct.variants)) ? currentProduct.variants : [];
+
+            if (variants.length === 0) {
+                wrap.classList.add('hidden');
+                options.innerHTML = '';
+                selectedVariant = null;
+                return;
+            }
+
+            wrap.classList.remove('hidden');
+            selectedVariant = variants[0];
+            options.innerHTML = variants.map((v, i) => `
+                <button type="button" data-idx="${i}" onclick="pickVariant(${i})"
+                    class="variant-pick-btn text-left border rounded-lg px-2.5 py-2 text-xs font-medium transition ${i === 0 ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-200 text-gray-700 hover:border-gray-400'}">
+                    ${v.name}
+                </button>
+            `).join('');
+        }
+
+        function pickVariant(i) {
+            const variants = currentProduct.variants || [];
+            selectedVariant = variants[i];
+            document.querySelectorAll('.variant-pick-btn').forEach((btn, idx) => {
+                btn.classList.toggle('border-gray-900', idx === i);
+                btn.classList.toggle('bg-gray-900', idx === i);
+                btn.classList.toggle('text-white', idx === i);
+                btn.classList.toggle('border-gray-200', idx !== i);
+                btn.classList.toggle('text-gray-700', idx !== i);
+            });
         }
 
         // Tombol "Beli Sekarang" DAN "Keranjang": sama-sama tampilkan popup jumlah pembelian dulu,
@@ -370,6 +414,7 @@
             if (!currentProduct) return;
             document.getElementById('p-name-in-modal').innerText = currentProduct.name;
             document.getElementById('buy-qty-input').value = 1;
+            renderVariantPicker();
             document.getElementById('buy-qty-modal').classList.remove('hidden');
         }
 
@@ -377,16 +422,28 @@
             document.getElementById('buy-qty-modal').classList.add('hidden');
         }
 
+        function hasUnselectedVariant() {
+            const variants = (currentProduct && Array.isArray(currentProduct.variants)) ? currentProduct.variants : [];
+            if (variants.length > 0 && !selectedVariant) {
+                alert('Mohon pilih variasi terlebih dahulu.');
+                return true;
+            }
+            return false;
+        }
+
         // Tombol "Tambah Keranjang" di dalam popup: tambah ke keranjang, tetap di halaman ini
         function confirmBuyQty() {
+            if (hasUnselectedVariant()) return;
             const qty = document.getElementById('buy-qty-input').value;
             addToCartCoreDetail(qty);
             closeBuyQtyModal();
-            showToast(`${qty} pcs "${currentProduct.name}" ditambahkan ke keranjang.`);
+            const label = selectedVariant ? `${currentProduct.name} (${selectedVariant.name})` : currentProduct.name;
+            showToast(`${qty} pcs "${label}" ditambahkan ke keranjang.`);
         }
 
         // Tombol "Beli" di dalam popup: tambah ke keranjang, LANGSUNG lanjut ke halaman pembayaran
         function confirmBuyNow() {
+            if (hasUnselectedVariant()) return;
             const qty = document.getElementById('buy-qty-input').value;
             addToCartCoreDetail(qty);
             closeBuyQtyModal();
